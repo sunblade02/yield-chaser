@@ -3,6 +3,7 @@ import { Inter  } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/provider/ThemeProvider";
 import Layout from "@/components/shared/Layout";
+import CustomRainbowKitProvider from "@/provider/CustomRainbowKitProvider";
 
 const inter = Inter({
     variable: '--font-inter',
@@ -30,7 +31,9 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <Layout>{children}</Layout>
+                    <CustomRainbowKitProvider>
+                        <Layout>{children}</Layout>
+                    </CustomRainbowKitProvider>
                 </ThemeProvider>
             </body>
         </html>

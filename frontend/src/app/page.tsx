@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Shield, TrendingUp, Zap } from "lucide-react";
+import Link from "next/link";
 
 export default function HomePage() {
     return (
@@ -10,16 +11,16 @@ export default function HomePage() {
                 <p className="mb-8 leading-relaxed text-muted-foreground ">
                     Automated yield strategies powered by real-time analytics. Track, optimize, and grow your portfolio with institutional-grade tools.
                 </p>
-                <Button>
-                    Get Started <ArrowRight />
+                <Button asChild>
+                    <Link href="/dashboard">Get Started <ArrowRight /></Link>
                 </Button>
             </div>
             <div className="md:flex justify-between md:gap-6">
                 <Card className="w-full mb-6 md:mb-0 rounded-lg p-8">
                     <CardHeader className="p-0">
                         <CardTitle>
-                            <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center mb-6">
-                                <Shield className="text-accent" />
+                            <div className="card-icon w-10 h-10 rounded-lg flex items-center justify-center mb-6">
+                                <Shield />
                             </div>
                             <h2>Full control of your funds</h2>
                         </CardTitle>
@@ -31,8 +32,8 @@ export default function HomePage() {
                 <Card className="w-full mb-6 md:mb-0 rounded-lg p-8">
                     <CardHeader className="p-0">
                         <CardTitle>
-                            <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center mb-6">
-                                <Zap className="text-accent" />
+                            <div className="card-icon w-10 h-10 rounded-lg flex items-center justify-center mb-6">
+                                <Zap />
                             </div>
                             <h2>Smart exposure</h2>
                         </CardTitle>
@@ -44,8 +45,8 @@ export default function HomePage() {
                 <Card className="w-full rounded-lg p-8">
                     <CardHeader className="p-0">
                         <CardTitle>
-                            <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center mb-6">
-                                <TrendingUp className="text-accent" />
+                            <div className="card-icon w-10 h-10 rounded-lg flex items-center justify-center mb-6">
+                                <TrendingUp />
                             </div>
                             <h2>Active yield optimization</h2>
                         </CardTitle>
