@@ -4,7 +4,7 @@ Automated yield strategies powered by real-time analytics. Track, optimize, and 
 
 ## 🚀 Features
 
-Coming soon... ⏳
+See the [CHANGELOG](./CHANGELOG) file to view the list of features.
 
 ## 🤖 Bot Actions
 
