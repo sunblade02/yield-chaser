@@ -14,4 +14,4 @@ run-hardhat-node:
 	docker exec -w /app/backend -e TERM=xterm-256color -ti yield-chaser-dev npx hardhat node
 
 test:
-	docker exec -w /app/backend -e TERM=xterm-256color yield-chaser-dev npx hardhat test
+	docker exec -w /app/backend -e TERM=xterm-256color yield-chaser-dev npx hardhat test --coverage
