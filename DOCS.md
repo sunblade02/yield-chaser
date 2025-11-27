@@ -298,6 +298,12 @@ function revokeBotRole(address _account) external returns (bool)
 Revokes the role `BOT ROLE` from an address
 This function can only be called by admin.
 
+### receive
+
+```solidity
+receive() external payable
+```
+
 inherits AccessControl:
 ### supportsInterface
 
@@ -436,6 +442,12 @@ inherits IAccessControl:
 
  --- 
 ### Events:
+### ETHReceived
+
+```solidity
+event ETHReceived(address sender, uint256 amount)
+```
+
 ### StrategyAdded
 
 ```solidity

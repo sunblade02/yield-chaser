@@ -22,6 +22,7 @@ contract YcRegistry is AccessControl {
     error NotAllowedStrategy();
     error AccountAlreadyExists();
     error ETHTransferFailed();
+    event ETHReceived(address sender, uint amount);
 
     //----- EVENTS -----//
 
@@ -105,5 +106,9 @@ contract YcRegistry is AccessControl {
     /// This function can only be called by admin.
     function revokeBotRole(address _account) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
         return _revokeRole(BOT_ROLE, _account);
+    }
+
+    receive() payable external {
+        emit ETHReceived(msg.sender, msg.value);
     }
 }
