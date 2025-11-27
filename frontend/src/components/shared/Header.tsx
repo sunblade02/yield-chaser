@@ -10,8 +10,8 @@ const Header = () => {
     const pathname = usePathname();
     
     return (
-        <header className="fixed w-full">
-            <nav className="flex items-center justify-between h-[60px] px-20 border-b">
+        <header className="fixed w-full border-b">
+            <nav className="flex items-center justify-between h-[60px] px-20 xl:px-80">
                 {pathname === "/" ?
                     <>
                         <Link href="/">Yield Chaser</Link>

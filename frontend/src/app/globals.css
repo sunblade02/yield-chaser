@@ -76,6 +76,8 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --toto: oklab(59.73500000000001% 0.038 -0.22056);
+  --main: #6c63ff;
+  --main-foreground: #6c63ff33;
 }
 
 .dark {
@@ -134,13 +136,46 @@
   }
 
   h2 {
+    font-size: var(--text-5xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.4;
+  }
+
+  .text-main {
+    color: var(--main);
+  }
+
+  .bg-main {
+    background-color: var(--main-foreground);
+  }
+}
+
+@layer utilities {
+  .bg-card.selected {
+    background-color: #6c63ff0d;
+    border-color: var(--main);
+  }
+
+  .bg-card h2 {
     font-size: var(--text-xl);
     font-weight: var(--font-weight-medium);
     line-height: 1.4;
   }
 
-  .card-icon {
-    background-color: #6c63ff33;
-    color: #6c63ff;
+  .bg-card h3 {
+    font-size: var(--text-md);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.4;
+  }
+
+  .bg-card.selected [data-slot=badge] {
+    color: var(--main);
+    background-color: #ffffff10;
   }
 }

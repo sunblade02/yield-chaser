@@ -1,0 +1,202 @@
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { contractAddress as registryContractAddress } from "@/constants/contracts/registry";
+import { contractABI as usdcContractABI, contractAddress as usdcContractAddress } from "@/constants/contracts/usdc";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
+import { approvalGasCost, createAccountGasCost } from "@/constants";
+import { StrategyType } from "@/types/StrategyType";
+import { TokenETH, TokenUSDC } from "@web3icons/react";
+import { type BaseError, useAccount, useGasPrice, useReadContract } from "wagmi";
+import { useApprove } from "@/hooks/usdc/useApprove";
+import TransactionResult from "../TransactionResult";
+import React, { useEffect, useState } from "react";
+import { useCreateAccount } from "@/hooks/registry/useCreateAccount";
+import Loading from "../Loading";
+
+const Step3 = ({
+    setStep,
+    strategy,
+    usdcAmount,
+    ethAmount,
+    accountRefetch
+} : {
+    setStep: (step: number) => void,
+    strategy: StrategyType,
+    usdcAmount: number|null,
+    ethAmount: number|null,
+    accountRefetch: () => void
+}) => {
+    const { address: userAddress } = useAccount();
+    const [ transactionResult, setTransactionResult ] = useState<React.ReactNode|null>(null);
+    const [ loading, setLoading ] = useState(false);
+
+    const {data: allowanceData, isSuccess: allowanceIsSuccess, refetch: allowanceRefetch} = useReadContract({
+        address: usdcContractAddress,
+        abi: usdcContractABI,
+        functionName: "allowance",
+        args: [ userAddress, registryContractAddress ],
+        query: {
+            enabled: !!userAddress
+        }
+    });
+
+    const { data: gasPrice, isSuccess: gasPriceIsSuccess } = useGasPrice();
+
+    let estimatedTransactionsCost = "";
+    let appovalStep = true;
+    if (gasPriceIsSuccess && allowanceIsSuccess) {
+        let totalGasCost = createAccountGasCost;
+        if (Number(allowanceData) < Number(usdcAmount)) {
+            totalGasCost += approvalGasCost;
+        } else {
+            appovalStep = false;
+        }
+        estimatedTransactionsCost = (totalGasCost * Number(gasPrice) / 10**18).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 18 });
+    }
+
+    const { error: approveError, isLoading: approveIsLoading, isSuccess: approveIsSuccess, approve } = useApprove(registryContractAddress, Number(usdcAmount));
+
+    const doApprove = () => {
+        approve();
+    };
+
+    const { error: createAccountError, isLoading: createAccountIsLoading, isSuccess: createAccountIsSuccess, createAccount } = useCreateAccount(strategy.address as `0x${string}`, Number(usdcAmount), Number(ethAmount));
+
+    const doCreateAccount = async () => {
+        createAccount();
+    };
+
+    const readableUsdcAmount = (Number(usdcAmount) / 10**6).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 6 });
+    const readableEthAmount = (Number(ethAmount) / 10**18).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 18 });
+
+    let readableBestNetAPY = null;
+    let readableNetBenefit = "";
+    let bestVaultName = "";
+    if (strategy.bestVaultIndex) {
+        bestVaultName = strategy.vaults[strategy.bestVaultIndex].name as string;
+        readableBestNetAPY = (Number(strategy.vaults[strategy.bestVaultIndex].netAPY) / 10**4).toLocaleString('en-US');
+        const netBenefit = (Number(usdcAmount) / 10**6) * Number(strategy.vaults[strategy.bestVaultIndex].netAPY) / 10**4 * 0.01;
+        readableNetBenefit = netBenefit.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    }
+
+    const hideTransactionResult = () => {
+        setTransactionResult(null);
+    };
+
+    useEffect(() => {
+        if (approveIsLoading || createAccountIsLoading) {
+            setLoading(true);
+        } else {
+            setLoading(false);
+        }
+    }, [approveIsLoading, createAccountIsLoading]);
+
+    useEffect(() => {
+        if (approveIsSuccess) {
+            setTransactionResult(<TransactionResult type="success" title="USDC approval successful" onClick={hideTransactionResult} />);
+            allowanceRefetch();
+        }
+    }, [approveIsSuccess]);
+
+    useEffect(() => {
+        if (approveError) {
+            setTransactionResult(<TransactionResult type="error" title="USDC approval failed" description={(approveError as BaseError).shortMessage || approveError.message} onClick={hideTransactionResult} />);
+        }
+    }, [approveError]);
+
+    useEffect(() => {
+        if (createAccountIsSuccess) {
+            setTransactionResult(<TransactionResult type="success" title="Account creation successful" buttonText="Go to dashboard" onClick={accountRefetch} />);
+        }
+    }, [createAccountIsSuccess]);
+
+    useEffect(() => {
+        if (createAccountError) {
+            setTransactionResult(<TransactionResult type="error" title="Account creation failed" description={(createAccountError as BaseError).shortMessage || createAccountError.message} onClick={hideTransactionResult} />);
+        }
+    }, [createAccountError]);
+
+    return (
+        <>
+            {loading ?
+                <Loading title="Processing your transaction..." description="Waiting for confirmation" />
+            :
+                <>
+                    {transactionResult ?
+                        transactionResult
+                    :
+                        <div className="max-w-[600px] mx-auto">
+                            <h2 className="mb-6">Review deposit</h2>
+
+                            <Card className="rounded-lg p-8 mb-6">
+                                <CardHeader className="p-0">
+                                    <CardDescription>
+                                        Deposit amounts
+                                    </CardDescription>
+                                    <div className="mt-2 text-3xl font-medium">
+                                        <TokenUSDC size={35} variant="mono" className="inline -mt-1" /> {readableUsdcAmount} USDC
+                                    </div>
+                                    <div className="mt-2 text-3xl font-medium">
+                                        <TokenETH size={35} variant="mono" className="inline -mt-1" /> {readableEthAmount} ETH
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="border-t px-0 flex flex-col pt-6 gap-y-4">
+                                    <div className="flex justify-between">
+                                        <div className="text-muted-foreground">
+                                            Strategy
+                                        </div>
+                                        <div>
+                                            {strategy.name}
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <div className="text-muted-foreground">
+                                            Current selected vault
+                                        </div>
+                                        <div>
+                                            {bestVaultName}
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <div className="text-muted-foreground">
+                                            Net APY
+                                        </div>
+                                        <div>
+                                            <Badge variant="secondary" className="rounded-md text-xs text-main bg-main">{readableBestNetAPY}%</Badge>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <div className="text-muted-foreground">
+                                            Estimated gas cost
+                                        </div>
+                                        <div className="text-muted-foreground">
+                                            {estimatedTransactionsCost} ETH
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <div className="text-muted-foreground">
+                                            Net benefit estimation
+                                        </div>
+                                        <div className="text-muted-foreground">
+                                            +{readableNetBenefit} USDC
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <div className="text-muted-foreground mb-8">
+                                Yield Chaser only acts when net benefit is positive.
+                            </div>
+
+                            {usdcAmount !== null && Number(usdcAmount) > 0 && <Button className="w-full mb-2" onClick={doApprove} disabled={!appovalStep}>Approve{appovalStep ? ` ${readableUsdcAmount} USDC for transfer` : ""}</Button>}
+                            <Button disabled={appovalStep} className="w-full mb-2" onClick={doCreateAccount}>Create account</Button>
+                            <Button className="w-full" variant="outline" onClick={() => setStep(2)}>Cancel</Button>
+                        </div>
+                    }
+                </>
+            }
+        </>
+    )
+}
+
+export default Step3
