@@ -15,7 +15,7 @@ import {
     QueryClientProvider,
     QueryClient,
 } from "@tanstack/react-query";
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import CustomAvatar from '@/components/shared/RainbowKit/CustomAvatar';
 import { useTheme } from 'next-themes';
 
@@ -23,19 +23,22 @@ const PROJECT_ID = process.env.NEXT_PUBLIC_WAGMI_PROVIDER_PROJECT_ID || "";
 const config = getDefaultConfig({
     appName: 'Yield Chaser',
     projectId: PROJECT_ID,
-    chains: [hardhat, sepolia],
+    chains: [hardhat],
     ssr: false,
 });
 
 const queryClient = new QueryClient();
 const CustomRainbowKitProvider = ({children}: {children: ReactNode}) => {
     const { theme, systemTheme } = useTheme();
+    const [ mounted, setMounted ] = useState(false);
 
-    const isClient = typeof window !== 'undefined';
-    const effectiveTheme = isClient ? 
-        theme === 'system' ? systemTheme ?? 'light' : theme 
-        : 
-        'light';
+    useEffect(() => setMounted(true), []);
+
+    if (!mounted) {
+        return null;
+    }
+
+    const effectiveTheme = theme === "system" ? systemTheme ?? "light" : theme;
 
     return (
         <WagmiProvider config={config}>

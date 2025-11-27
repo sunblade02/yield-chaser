@@ -8,12 +8,12 @@ async function setup() {
     const usdcAddress = await usdc.getAddress();
 
     const [user1, user2] = await ethers.getSigners();
-    await usdc.faucet(user1.address, 1_000_000_000); // 1 000 USDC
-    await usdc.faucet(user2.address, 500_000_000); // 500 USDC
+    await usdc.faucet(user1.address, ethers.parseUnits("1000", 6)); // 1 000 USDC
+    await usdc.faucet(user2.address, ethers.parseUnits("500", 6)); // 500 USDC
 
     const managementFee = 10_000_000_000_000_000n; // 1e16 => 1 %
     const performanceFee = 150_000_000_000_000_000n; // 15e16 => 15 %
-    const vault = await ethers.deployContract("MockMorphoVault", [usdcAddress, managementFee, performanceFee]);
+    const vault = await ethers.deployContract("MockMorphoVault", ["Mock Morpho Vault", "MMV", usdcAddress, managementFee, performanceFee]);
     await vault.getAddress();
 
     return {usdc, user1, user2, vault};
@@ -22,11 +22,11 @@ async function setup() {
 async function setupWithDeposits() {
     ({ usdc, user1, user2, vault } = await setup());
     
-    await usdc.approve(vault.getAddress(), 1_000_000_000);
-    await vault.deposit(1_000_000_000, user1.address);
+    await usdc.approve(vault.getAddress(), ethers.parseUnits("1000", 6));
+    await vault.deposit(ethers.parseUnits("1000", 6), user1.address);
 
-    await usdc.connect(user2).approve(vault.getAddress(), 500_000_000);
-    await vault.connect(user2).deposit(500_000_000, user2.address);
+    await usdc.connect(user2).approve(vault.getAddress(), ethers.parseUnits("500", 6));
+    await vault.connect(user2).deposit(ethers.parseUnits("500", 6), user2.address);
 
     return {usdc, user1, user2, vault};
 }
@@ -37,9 +37,9 @@ async function setupWithDepositsAndIncAssets() {
     await vault.incAssets(90_000_000); // +6%
 
 
-    await usdc.faucet(user2.address, 250_000_000);
-    await usdc.connect(user2).approve(vault.getAddress(), 250_000_000);
-    await vault.connect(user2).deposit(250_000_000, user2.address);
+    await usdc.faucet(user2.address, ethers.parseUnits("250", 6));
+    await usdc.connect(user2).approve(vault.getAddress(), ethers.parseUnits("250", 6));
+    await vault.connect(user2).deposit(ethers.parseUnits("250", 6), user2.address);
 
     return {usdc, user1, user2, vault};
 }
@@ -50,177 +50,177 @@ let user2: any;
 let vault: any;
 
 describe("MockMorphoVault", function () {
-    describe("deposit() function tests", function () {
+    describe("deposit", function () {
         beforeEach(async () => {
             ({ usdc, user1, user2, vault } = await setup());
         });
 
         it("Should transfer USDC when calling the deposit() function", async function () {
-            expect(await usdc.balanceOf(user1.address)).to.equal(1_000_000_000);
+            expect(await usdc.balanceOf(user1.address)).to.equal(ethers.parseUnits("1000", 6));
             expect(await usdc.balanceOf(vault.getAddress())).to.equal(0);
 
-            await usdc.approve(vault.getAddress(), 1_000_000_000);
-            await vault.deposit(1_000_000_000, user1.address);
+            await usdc.approve(vault.getAddress(), ethers.parseUnits("1000", 6));
+            await vault.deposit(ethers.parseUnits("1000", 6), user1.address);
 
             expect(await usdc.balanceOf(user1.address)).to.equal(0);
-            expect(await usdc.balanceOf(vault.getAddress())).to.equal(1_000_000_000);
+            expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1000", 6));
         });
 
         it("Should update data when calling the deposit() function", async function () {
             expect(await vault.totalCapital()).to.equal(0);
-            expect(await vault.totalAssets()).to.equal(0);
+            expect(await vault._totalAssets()).to.equal(0);
             expect(await vault.totalSupply()).to.equal(0);
             expect(await vault.balanceOf(user1.address)).to.equal(0);
             expect(await vault.balanceOf(user2.address)).to.equal(0);
 
-            await usdc.approve(vault.getAddress(), 1_000_000_000);
-            await vault.deposit(1_000_000_000, user1.address);
+            await usdc.approve(vault.getAddress(), ethers.parseUnits("1000", 6));
+            await vault.deposit(ethers.parseUnits("1000", 6), user1.address);
 
-            expect(await vault.totalCapital()).to.equal(1_000_000_000);
-            expect(await vault.totalAssets()).to.equal(1_000_000_000);
-            expect(await vault.totalSupply()).to.equal(1_000_000_000);
-            expect(await vault.balanceOf(user1.address)).to.equal(1_000_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault.totalSupply()).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault.balanceOf(user1.address)).to.equal(ethers.parseUnits("1000", 6));
             expect(await vault.balanceOf(user2.address)).to.equal(0);
 
-            await usdc.connect(user2).approve(vault.getAddress(), 500_000_000);
-            await vault.connect(user2).deposit(500_000_000, user2.address);
+            await usdc.connect(user2).approve(vault.getAddress(), ethers.parseUnits("500", 6));
+            await vault.connect(user2).deposit(ethers.parseUnits("500", 6), user2.address);
 
-            expect(await vault.totalCapital()).to.equal(1_500_000_000);
-            expect(await vault.totalAssets()).to.equal(1_500_000_000);
-            expect(await vault.totalSupply()).to.equal(1_500_000_000);
-            expect(await vault.balanceOf(user1.address)).to.equal(1_000_000_000);
-            expect(await vault.balanceOf(user2.address)).to.equal(500_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault.totalSupply()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault.balanceOf(user1.address)).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault.balanceOf(user2.address)).to.equal(ethers.parseUnits("500", 6));
         });
     });
 
-    describe("withdraw() function tests", function () {
+    describe("withdraw", function () {
         beforeEach(async () => {
             ({ usdc, user1, user2, vault } = await setupWithDeposits());
         });
 
         it("Should transfer USDC when calling the withdraw() function", async function () {
             expect(await usdc.balanceOf(user1.address)).to.equal(0);
-            expect(await usdc.balanceOf(vault.getAddress())).to.equal(1_500_000_000);
+            expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1500", 6));
 
-            await vault.withdraw(250_000_000, user1.address, user1.address);
+            await vault.withdraw(ethers.parseUnits("250", 6), user1.address, user1.address);
 
-            expect(await usdc.balanceOf(user1.address)).to.equal(250_000_000);
-            expect(await usdc.balanceOf(vault.getAddress())).to.equal(1_250_000_000);
+            expect(await usdc.balanceOf(user1.address)).to.equal(ethers.parseUnits("250", 6));
+            expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1250", 6));
         });
 
         it("Should update data when calling the withdraw() function", async function () {
-            expect(await vault.totalCapital()).to.equal(1_500_000_000);
-            expect(await vault.totalAssets()).to.equal(1_500_000_000);
-            expect(await vault.totalSupply()).to.equal(1_500_000_000);
-            expect(await vault.balanceOf(user1.address)).to.equal(1_000_000_000);
-            expect(await vault.balanceOf(user2.address)).to.equal(500_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault.totalSupply()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault.balanceOf(user1.address)).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault.balanceOf(user2.address)).to.equal(ethers.parseUnits("500", 6));
 
-            await vault.withdraw(500_000_000, user1.address, user1.address);
+            await vault.withdraw(ethers.parseUnits("500", 6), user1.address, user1.address);
 
-            expect(await vault.totalCapital()).to.equal(1_000_000_000);
-            expect(await vault.totalAssets()).to.equal(1_000_000_000);
-            expect(await vault.totalSupply()).to.equal(1_000_000_000);
-            expect(await vault.balanceOf(user1.address)).to.equal(500_000_000);
-            expect(await vault.balanceOf(user2.address)).to.equal(500_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault.totalSupply()).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault.balanceOf(user1.address)).to.equal(ethers.parseUnits("500", 6));
+            expect(await vault.balanceOf(user2.address)).to.equal(ethers.parseUnits("500", 6));
 
-            await vault.connect(user2).withdraw(250_000_000, user2.address, user2.address);
+            await vault.connect(user2).withdraw(ethers.parseUnits("250", 6), user2.address, user2.address);
 
-            expect(await vault.totalCapital()).to.equal(750_000_000);
-            expect(await vault.totalAssets()).to.equal(750_000_000);
-            expect(await vault.totalSupply()).to.equal(750_000_000);
-            expect(await vault.balanceOf(user1.address)).to.equal(500_000_000);
-            expect(await vault.balanceOf(user2.address)).to.equal(250_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("750", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("750", 6));
+            expect(await vault.totalSupply()).to.equal(ethers.parseUnits("750", 6));
+            expect(await vault.balanceOf(user1.address)).to.equal(ethers.parseUnits("500", 6));
+            expect(await vault.balanceOf(user2.address)).to.equal(ethers.parseUnits("250", 6));
         });
     });
 
-    describe("withdraw() function tests", function () {
+    describe("withdraw", function () {
         beforeEach(async () => {
             ({ usdc, user1, user2, vault } = await setupWithDeposits());
         });
 
         it("Should transfer USDC when calling the withdraw() function", async function () {
             expect(await usdc.balanceOf(user1.address)).to.equal(0);
-            expect(await usdc.balanceOf(vault.getAddress())).to.equal(1_500_000_000);
+            expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1500", 6));
 
-            await vault.withdraw(250_000_000, user1.address, user1.address);
+            await vault.withdraw(ethers.parseUnits("250", 6), user1.address, user1.address);
 
-            expect(await usdc.balanceOf(user1.address)).to.equal(250_000_000);
-            expect(await usdc.balanceOf(vault.getAddress())).to.equal(1_250_000_000);
+            expect(await usdc.balanceOf(user1.address)).to.equal(ethers.parseUnits("250", 6));
+            expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1250", 6));
         });
 
         it("Should update data when calling the withdraw() function", async function () {
-            expect(await vault.totalCapital()).to.equal(1_500_000_000);
-            expect(await vault.totalAssets()).to.equal(1_500_000_000);
-            expect(await vault.totalSupply()).to.equal(1_500_000_000);
-            expect(await vault.balanceOf(user1.address)).to.equal(1_000_000_000);
-            expect(await vault.balanceOf(user2.address)).to.equal(500_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault.totalSupply()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault.balanceOf(user1.address)).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault.balanceOf(user2.address)).to.equal(ethers.parseUnits("500", 6));
 
-            await vault.withdraw(500_000_000, user1.address, user1.address);
+            await vault.withdraw(ethers.parseUnits("500", 6), user1.address, user1.address);
 
-            expect(await vault.totalCapital()).to.equal(1_000_000_000);
-            expect(await vault.totalAssets()).to.equal(1_000_000_000);
-            expect(await vault.totalSupply()).to.equal(1_000_000_000);
-            expect(await vault.balanceOf(user1.address)).to.equal(500_000_000);
-            expect(await vault.balanceOf(user2.address)).to.equal(500_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault.totalSupply()).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault.balanceOf(user1.address)).to.equal(ethers.parseUnits("500", 6));
+            expect(await vault.balanceOf(user2.address)).to.equal(ethers.parseUnits("500", 6));
 
-            await vault.connect(user2).withdraw(250_000_000, user2.address, user2.address);
+            await vault.connect(user2).withdraw(ethers.parseUnits("250", 6), user2.address, user2.address);
 
-            expect(await vault.totalCapital()).to.equal(750_000_000);
-            expect(await vault.totalAssets()).to.equal(750_000_000);
-            expect(await vault.totalSupply()).to.equal(750_000_000);
-            expect(await vault.balanceOf(user1.address)).to.equal(500_000_000);
-            expect(await vault.balanceOf(user2.address)).to.equal(250_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("750", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("750", 6));
+            expect(await vault.totalSupply()).to.equal(ethers.parseUnits("750", 6));
+            expect(await vault.balanceOf(user1.address)).to.equal(ethers.parseUnits("500", 6));
+            expect(await vault.balanceOf(user2.address)).to.equal(ethers.parseUnits("250", 6));
         });
     });
 
-    describe("redeem() function tests", function () {
+    describe("redeem", function () {
         beforeEach(async () => {
             ({ usdc, user1, user2, vault } = await setupWithDeposits());
         });
 
         it("Should transfer USDC when calling the redeem() function", async function () {
             expect(await usdc.balanceOf(user1.address)).to.equal(0);
-            expect(await usdc.balanceOf(vault.getAddress())).to.equal(1_500_000_000);
+            expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1500", 6));
 
-            await vault.redeem(750_000_000, user1.address, user1.address);
+            await vault.redeem(ethers.parseUnits("750", 6), user1.address, user1.address);
 
-            expect(await usdc.balanceOf(user1.address)).to.equal(750_000_000);
-            expect(await usdc.balanceOf(vault.getAddress())).to.equal(750_000_000);
+            expect(await usdc.balanceOf(user1.address)).to.equal(ethers.parseUnits("750", 6));
+            expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("750", 6));
         });
 
         it("Should update data when calling the redeem() function", async function () {
-            expect(await vault.totalCapital()).to.equal(1_500_000_000);
-            expect(await vault.totalAssets()).to.equal(1_500_000_000);
-            expect(await vault.totalSupply()).to.equal(1_500_000_000);
-            expect(await vault.balanceOf(user1.address)).to.equal(1_000_000_000);
-            expect(await vault.balanceOf(user2.address)).to.equal(500_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault.totalSupply()).to.equal(ethers.parseUnits("1500", 6));
+            expect(await vault.balanceOf(user1.address)).to.equal(ethers.parseUnits("1000", 6));
+            expect(await vault.balanceOf(user2.address)).to.equal(ethers.parseUnits("500", 6));
 
-            await vault.redeem(1_000_000_000, user1.address, user1.address);
+            await vault.redeem(ethers.parseUnits("1000", 6), user1.address, user1.address);
 
-            expect(await vault.totalCapital()).to.equal(500_000_000);
-            expect(await vault.totalAssets()).to.equal(500_000_000);
-            expect(await vault.totalSupply()).to.equal(500_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("500", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("500", 6));
+            expect(await vault.totalSupply()).to.equal(ethers.parseUnits("500", 6));
             expect(await vault.balanceOf(user1.address)).to.equal(0);
-            expect(await vault.balanceOf(user2.address)).to.equal(500_000_000);
+            expect(await vault.balanceOf(user2.address)).to.equal(ethers.parseUnits("500", 6));
 
-            await vault.connect(user2).redeem(125_000_000, user2.address, user2.address);
+            await vault.connect(user2).redeem(ethers.parseUnits("125", 6), user2.address, user2.address);
 
-            expect(await vault.totalCapital()).to.equal(375_000_000);
-            expect(await vault.totalAssets()).to.equal(375_000_000);
-            expect(await vault.totalSupply()).to.equal(375_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("375", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("375", 6));
+            expect(await vault.totalSupply()).to.equal(ethers.parseUnits("375", 6));
             expect(await vault.balanceOf(user1.address)).to.equal(0);
-            expect(await vault.balanceOf(user2.address)).to.equal(375_000_000);
+            expect(await vault.balanceOf(user2.address)).to.equal(ethers.parseUnits("375", 6));
         });
     });
 
-    describe("incAssets() function tests", function () {
+    describe("incAssets", function () {
         beforeEach(async () => {
             ({ usdc, user1, user2, vault } = await setupWithDepositsAndIncAssets());
         });
 
         it("Should transfer USDC with interest minus fees when calling the redeem() function", async function () {
             expect(await usdc.balanceOf(user1.address)).to.equal(0);
-            expect(await usdc.balanceOf(vault.getAddress())).to.equal(1_840_000_000);
+            expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1840", 6));
 
             // total capital = 1 500 + 250 = 1 750
             // total supply = 1 500 + 250 * 1 500 / 1 590 ~= 1 735,849056
@@ -231,7 +231,7 @@ describe("MockMorphoVault", function () {
             // management fees = 51,847826 * (0,15 + 0,01) = 8,295652 
             // net assets = 1 060 - 8.295652  = 1 051,704348
 
-            await vault.redeem(1_000_000_000, user1.address, user1.address);
+            await vault.redeem(ethers.parseUnits("1000", 6), user1.address, user1.address);
 
             expect(await usdc.balanceOf(user1.address)).to.be.closeTo(1_051_704_348, 1);
             expect(await usdc.balanceOf(vault.getAddress())).to.be.closeTo(788_295_652, 1);
@@ -241,10 +241,10 @@ describe("MockMorphoVault", function () {
             // total capital (t0) = 1 500 + 250 = 1 750
             // total supply (t0) = 1 500 + 250 * 1 500 / 1 590 ~= 1 735,849056
 
-            expect(await vault.totalCapital()).to.equal(1_750_000_000);
-            expect(await vault.totalAssets()).to.equal(1_840_000_000);
+            expect(await vault.totalCapital()).to.equal(ethers.parseUnits("1750", 6));
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("1840", 6));
             expect(await vault.totalSupply()).to.equal(1_735_849_056);
-            expect(await vault.balanceOf(user1.address)).to.equal(1_000_000_000);
+            expect(await vault.balanceOf(user1.address)).to.equal(ethers.parseUnits("1000", 6));
 
             // total assets (t0) = 1 500 + 90 + 250 = 1 840
             // assets = 1 000 * 1 840 / 1 735,849056 ~= 1 060
@@ -253,14 +253,14 @@ describe("MockMorphoVault", function () {
             // management fees = 51,847826 * (0,15 + 0,01) = 8,295652 
             // net assets = 1 060 - 8,295652  = 1 051,704348
 
-            await vault.redeem(1_000_000_000, user1.address, user1.address);
+            await vault.redeem(ethers.parseUnits("1000", 6), user1.address, user1.address);
 
             // total capital (t1) = 1 750 - 1 008,152174 = 741,847826
             // total supply (t1) = 1 735,849056 - 1 000 = 735,849056
             // total assets (t1) = 1 840 - 1 060 = 780
 
             expect(await vault.totalCapital()).to.equal(741_847_826);
-            expect(await vault.totalAssets()).to.equal(780_000_000);
+            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("780", 6));
             expect(await vault.totalSupply()).to.equal(735_849_056);
             expect(await vault.balanceOf(user1.address)).to.equal(0);
         });

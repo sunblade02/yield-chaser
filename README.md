@@ -10,6 +10,10 @@ See the [CHANGELOG](./CHANGELOG.md) file to view the list of features.
 
 Coming soon... ⏳
 
+## 📘 Documentation
+
+See the [DOCS](./DOCS.md) file about the Yield Chaser Solidity API.
+
 ## 📄 License
 
 This project is licensed under the MIT License.
