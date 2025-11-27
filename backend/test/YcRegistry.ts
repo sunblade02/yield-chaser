@@ -59,6 +59,21 @@ let vault2: any;
 
 describe("YcRegistry", () => {
 
+    describe("receive", () => {
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
+        });
+        
+        it("Should emit a ETHReceived event", async function () {
+            const tx = await user1.sendTransaction({
+                to: registry,
+                value: ethers.parseEther("1")
+            });
+
+            expect(tx).to.emit(registry, "ETHReceived").withArgs(user1, ethers.parseEther("1"));
+        });
+    });
+
     describe("grantBotRole", () => {
         beforeEach(async () => {
             ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());

@@ -87,7 +87,7 @@ describe("YcStrategy", () => {
             ({ user1, user2, strategy, vault1, vault2 } = await setupWithVaults());
         });
 
-        it.only("Should update vaults net APY", async function () {
+        it("Should update vaults net APY", async function () {
             expect(await strategy.vaults(vault1)).to.be.equal(0);
             expect(await strategy.vaults(vault2)).to.be.equal(0);
 

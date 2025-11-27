@@ -10,3 +10,4 @@
 - [Admin] Remove an authorized bot (backend only)
 - [Admin] Add a vault in a strategy (backend only)
 - [Admin] Add a strategy in the registry (backend only)
+- [Admin] Send ETH to the registry (backend only)
