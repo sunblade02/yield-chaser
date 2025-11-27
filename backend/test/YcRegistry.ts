@@ -59,6 +59,62 @@ let vault2: any;
 
 describe("YcRegistry", () => {
 
+    describe("grantBotRole", () => {
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
+        });
+
+        it("Should grant bot role", async function () {
+            const botRole = await registry.BOT_ROLE();
+            expect(await registry.hasRole(botRole, user2)).to.be.equal(false);
+
+            await registry.grantBotRole(user2);
+
+            expect(await registry.hasRole(botRole, user2)).to.be.equal(true);
+        });
+
+        it("Should emit a RoleGranted event", async function () {
+            const botRole = await registry.BOT_ROLE();
+            await expect(registry.grantBotRole(user2)).to.emit(registry, "RoleGranted").withArgs(botRole, user2, user1);
+        });
+
+        it("Only admin could grant bot role", async function () {
+            await expect(registry.connect(user2).grantBotRole(user2)).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
+        });
+    });
+
+    describe("revokeBotRole", () => {
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
+        });
+
+        it("Should revoke bot role", async function () {
+            const botRole = await registry.BOT_ROLE();
+            
+            await registry.grantBotRole(user2);
+
+            expect(await registry.hasRole(botRole, user2)).to.be.equal(true);
+
+            await registry.revokeBotRole(user2);
+
+            expect(await registry.hasRole(botRole, user2)).to.be.equal(false);
+        });
+
+        it("Should emit a RoleRevoked event", async function () {
+            const botRole = await registry.BOT_ROLE();
+            
+            await registry.grantBotRole(user2);
+
+            await expect(registry.revokeBotRole(user2)).to.emit(registry, "RoleRevoked").withArgs(botRole, user2, user1);
+        });
+
+        it("Only admin could grant bot role", async function () {
+            await registry.grantBotRole(user2);
+
+            await expect(registry.connect(user2).revokeBotRole(user2)).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
+        });
+    });
+
     describe("addStrategy", () => {
         beforeEach(async () => {
             ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());

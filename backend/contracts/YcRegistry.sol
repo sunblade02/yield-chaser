@@ -30,6 +30,8 @@ contract YcRegistry is AccessControl {
 
     //----- STATE VARIABLES -----//
 
+    bytes32 public constant BOT_ROLE = keccak256("BOT_ROLE");
+
     IYcFactory public factory;
 
     YcToken public yct;
@@ -56,7 +58,7 @@ contract YcRegistry is AccessControl {
     /// @notice Adds a strategy to the registry.
     /// This function can only be called by admin.
     /// The strategy must be owned by the registry.
-    function addStrategy(IYcStrategy _strategy) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function addStrategy(IYcStrategy _strategy) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(Ownable(address(_strategy)).owner() == address(this), NotStrategyOwner());
 
         strategies.push(_strategy);
@@ -91,5 +93,17 @@ contract YcRegistry is AccessControl {
         emit AccountCreated(msg.sender, _strategy, _amount, msg.value);
 
         return account;
+    }
+
+    /// @notice Grants the role `BOT ROLE` to an address
+    /// This function can only be called by admin.
+    function grantBotRole(address _account) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
+        return _grantRole(BOT_ROLE, _account);
+    }
+    
+    /// @notice Revokes the role `BOT ROLE` from an address
+    /// This function can only be called by admin.
+    function revokeBotRole(address _account) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
+        return _revokeRole(BOT_ROLE, _account);
     }
 }
