@@ -262,7 +262,7 @@ constructor(contract ERC20 _usdc) public
 ### addStrategy
 
 ```solidity
-function addStrategy(contract IYcStrategy _strategy) public
+function addStrategy(contract IYcStrategy _strategy) external
 ```
 
 Adds a strategy to the registry.
@@ -279,6 +279,24 @@ Creates a new account to the registry.
 Transfers ETH to the account.
 Attempts to Transfer USDC to the highest performing yield vault according to the selected strategy.
 Mints 1 YCT and transfers it to the account.
+
+### grantBotRole
+
+```solidity
+function grantBotRole(address _account) external returns (bool)
+```
+
+Grants the role `BOT ROLE` to an address
+This function can only be called by admin.
+
+### revokeBotRole
+
+```solidity
+function revokeBotRole(address _account) external returns (bool)
+```
+
+Revokes the role `BOT ROLE` from an address
+This function can only be called by admin.
 
 inherits AccessControl:
 ### supportsInterface
