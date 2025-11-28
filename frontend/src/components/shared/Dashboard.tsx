@@ -26,8 +26,6 @@ const Dashboard = ({
     const { data: account, isLoading: accountIsLoading, isSuccess: accountIsSuccess } = useGetAccount(accountAddress);
     const { data: strategy, isLoading: strategyIsLoading, isSuccess: strategyIsSuccess } = useGetStrategy(account.strategy);
 
-    
-
     let currentVaultIndex = null;
     if (accountIsSuccess && strategyIsSuccess) {
         for(let i = 0; strategy.vaults.length; i++) {

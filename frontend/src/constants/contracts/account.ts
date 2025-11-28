@@ -1,190 +1,266 @@
 export const contractABI = [
-{
-    "inputs": [
     {
-        "internalType": "contract ERC20",
-        "name": "_usdc",
-        "type": "address"
+      "inputs": [
+        {
+          "internalType": "contract ERC20",
+          "name": "_usdc",
+          "type": "address"
+        },
+        {
+          "internalType": "contract IYcStrategy",
+          "name": "_strategy",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
     },
     {
-        "internalType": "contract IYcStrategy",
-        "name": "_strategy",
-        "type": "address"
+      "inputs": [],
+      "name": "NoUSDC",
+      "type": "error"
     },
     {
-        "internalType": "address",
-        "name": "_owner",
-        "type": "address"
-    }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-},
-{
-    "inputs": [],
-    "name": "NoVault",
-    "type": "error"
-},
-{
-    "inputs": [
-    {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-    }
-    ],
-    "name": "OwnableInvalidOwner",
-    "type": "error"
-},
-{
-    "inputs": [
-    {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-    }
-    ],
-    "name": "OwnableUnauthorizedAccount",
-    "type": "error"
-},
-{
-    "anonymous": false,
-    "inputs": [
-    {
-        "indexed": false,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
+      "inputs": [],
+      "name": "NoVault",
+      "type": "error"
     },
     {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-    }
-    ],
-    "name": "ETHReceived",
-    "type": "event"
-},
-{
-    "anonymous": false,
-    "inputs": [
-    {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
     },
     {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-    }
-    ],
-    "name": "OwnershipTransferred",
-    "type": "event"
-},
-{
-    "anonymous": false,
-    "inputs": [
-    {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
     },
     {
-        "indexed": false,
-        "internalType": "contract IVaultV2",
-        "name": "vault",
-        "type": "address"
-    }
-    ],
-    "name": "USDCAllocated",
-    "type": "event"
-},
-{
-    "inputs": [],
-    "name": "allocate",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-},
-{
-    "inputs": [],
-    "name": "currentVault",
-    "outputs": [
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "ETHReceived",
+      "type": "event"
+    },
     {
-        "internalType": "contract IVaultV2",
-        "name": "",
-        "type": "address"
-    }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-},
-{
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint32",
+          "name": "oldNoReallocationPeriod",
+          "type": "uint32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint32",
+          "name": "newNoReallocationPeriod",
+          "type": "uint32"
+        }
+      ],
+      "name": "NoReallocationPeriodUpdated",
+      "type": "event"
+    },
     {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-    }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-},
-{
-    "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-},
-{
-    "inputs": [],
-    "name": "strategy",
-    "outputs": [
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
     {
-        "internalType": "contract IYcStrategy",
-        "name": "",
-        "type": "address"
-    }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-},
-{
-    "inputs": [
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "contract IVaultV2",
+          "name": "vault",
+          "type": "address"
+        }
+      ],
+      "name": "USDCAllocated",
+      "type": "event"
+    },
     {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-    }
-    ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-},
-{
-    "inputs": [],
-    "name": "usdc",
-    "outputs": [
+      "inputs": [],
+      "name": "allocate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
     {
-        "internalType": "contract ERC20",
-        "name": "",
-        "type": "address"
+      "inputs": [],
+      "name": "checkReallocation",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "currentVault",
+      "outputs": [
+        {
+          "internalType": "contract IVaultV2",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lastReallocation",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "noReallocationPeriod",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint32",
+          "name": "_noReallocationPeriod",
+          "type": "uint32"
+        }
+      ],
+      "name": "setNoReallocationPeriod",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "strategy",
+      "outputs": [
+        {
+          "internalType": "contract IYcStrategy",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "usdc",
+      "outputs": [
+        {
+          "internalType": "contract ERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
     }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-},
-{
-    "stateMutability": "payable",
-    "type": "receive"
-}
-];
+  ];

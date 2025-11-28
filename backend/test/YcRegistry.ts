@@ -286,7 +286,7 @@ describe("YcRegistry", () => {
             ])).to.emit(registry, "StrategyNetAPYsUpdated").withArgs(bot, strategy);
         });
         
-        it.only("Only bot could update vaults net APYs for a strategy", async function () {
+        it("Only bot could update vaults net APYs for a strategy", async function () {
             await expect(registry.updateStrategyVaultsNetAPY(strategy, [
                 vault1,
                 vault2

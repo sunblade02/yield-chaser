@@ -76,6 +76,23 @@ function allocate() external
 
 Allocates USDC to the highest performing yield vault according to the strategy.
 
+### checkReallocation
+
+```solidity
+function checkReallocation() external view returns (bool)
+```
+
+Checks for reallocation
+
+### setNoReallocationPeriod
+
+```solidity
+function setNoReallocationPeriod(uint32 _noReallocationPeriod) external
+```
+
+Set the no reallocation period in seconds
+This function can only be called by the owner.
+
 ### receive
 
 ```solidity
@@ -143,6 +160,12 @@ event USDCAllocated(uint256 amount, contract IVaultV2 vault)
 
 ```solidity
 event ETHReceived(address sender, uint256 amount)
+```
+
+### NoReallocationPeriodUpdated
+
+```solidity
+event NoReallocationPeriodUpdated(uint32 oldNoReallocationPeriod, uint32 newNoReallocationPeriod)
 ```
 
 inherits Ownable:
