@@ -1,8 +1,9 @@
 import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
 import { configVariable, defineConfig } from "hardhat/config";
+import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
 
 export default defineConfig({
-  plugins: [hardhatToolboxMochaEthersPlugin],
+  plugins: [hardhatToolboxMochaEthersPlugin, hardhatNetworkHelpers],
   solidity: {
     profiles: {
       default: {

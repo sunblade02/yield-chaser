@@ -1,7 +1,5 @@
 import { network } from "hardhat";
 import { YcRegistry } from "../../types/ethers-contracts/YcRegistry.js";
-import { IYcStrategy } from "../../types/ethers-contracts/IYcStrategy.js";
-import { IVaultV2 } from "../../types/ethers-contracts/index.js";
 
 const { ethers } = await network.connect({
     network: "localhost",

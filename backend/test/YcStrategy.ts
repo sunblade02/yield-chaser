@@ -155,7 +155,7 @@ describe("YcStrategy", () => {
             ({ user1, user2, strategy, vault1, vault2 } = await setupWithVaults());
         });
 
-        it("Should return the vaults in the stratgey", async function () {
+        it("Should return the vaults in the strategy", async function () {
             const vaults = await strategy.getVaults();
 
             expect(vaults.length).to.be.equal(2);

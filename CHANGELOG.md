@@ -9,6 +9,7 @@
 - [User] View account data
 - [User] View history
 - [Authorized bot] Update yield data
+- [Bot] Check if an account need reallocation
 - [Admin] Add an authorized bot (backend only)
 - [Admin] Remove an authorized bot (backend only)
 - [Admin] Add a vault in a strategy (backend only)

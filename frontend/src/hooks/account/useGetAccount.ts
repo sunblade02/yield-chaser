@@ -24,6 +24,15 @@ export const useGetAccount = (contractAddress: any) => {
         }
     });
 
+    const {data: noReallocationPeriod, isLoading: noReallocationPeriodIsLoading, isSuccess: noReallocationPeriodIsSuccess} = useReadContract({
+        address: contractAddress,
+        abi: accountContractABI,
+        functionName: "noReallocationPeriod",
+        query: {
+            enabled: !!contractAddress
+        }
+    });
+
     const {data: shares, isLoading: sharesIsLoading, isSuccess: sharesIsSuccess} = useReadContract({
         address: currentVaultAddress as `0x${string}`,
         abi: ivaultv2ContractABI,
@@ -74,9 +83,11 @@ export const useGetAccount = (contractAddress: any) => {
     const totalUsdc = (usdcBalance ? Number(usdcBalance) : 0) + (assets ? Number(assets) : 0);
 
     let account: AccountType = {
+        address: contractAddress,
         usdc: totalUsdc,
         yct: yctBalance ? Number(yctBalance) : 0,
         eth: eth?.value ? Number(eth?.value) : 0,
+        noReallocationPeriod: noReallocationPeriod ? Number(noReallocationPeriod) : 0,
         currentVault: currentVaultAddress ? currentVaultAddress as `0x${string}` : null,
         strategy: strategyAddress ? strategyAddress as `0x${string}` : null,
     };
@@ -84,8 +95,8 @@ export const useGetAccount = (contractAddress: any) => {
     return {
         data: account,
         isLoading: currentVaultAddressIsLoading || strategyAddressIsLoading || sharesIsLoading || assetsIsLoading || usdcBalanceIsLoading 
-            || yctBalanceIsLoading || ethIsLoading,
+            || yctBalanceIsLoading || ethIsLoading || noReallocationPeriodIsLoading,
         isSuccess: currentVaultAddressIsSuccess && strategyAddressIsSuccess && sharesIsSuccess && assetsIsSuccess && usdcBalanceIsSuccess
-            && yctBalanceIsSuccess && ethIsSuccess
+            && yctBalanceIsSuccess && ethIsSuccess && noReallocationPeriodIsSuccess
     };
 };

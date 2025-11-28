@@ -2,6 +2,8 @@ import { contractABI, contractAddress } from "@/constants/contracts/registry";
 import { useAccount, useReadContract } from "wagmi";
 import UpdateStrategyVaultsNetAPY from "./Admin/UpdateStrategyVaultsNetAPY";
 import { useGetStrategy } from "@/hooks/strategy/useGetStrategy";
+import { useGetAccount } from "@/hooks/account/useGetAccount";
+import SetNoReallocationPeriod from "./Admin/SetNoReallocationPeriod";
 
 const Admin = () => {
     const { address } = useAccount();
@@ -22,18 +24,38 @@ const Admin = () => {
         }
     });
 
+    const { data: accountAddress, refetch: accountRefetch } = useReadContract({
+        address: contractAddress,
+        abi: contractABI,
+        functionName: "accounts",
+        args: [ address ],
+        query: {
+            enabled: !!address
+        }
+    });
+    
+    const { data: account } = useGetAccount(accountAddress);
+
     const { data: strategyAddress } = useReadContract({
         address: contractAddress,
         abi: contractABI,
         functionName: "strategies",
         args: [ 0 ]
     });
-    
-    const { data: strategy, } = useGetStrategy(strategyAddress);
+
+    const { data: strategy } = useGetStrategy(strategyAddress);
 
     return (
         <>
             <h1 className="mb-6">Admin panel</h1>
+            {accountAddress &&
+                <>
+                    <h2 className="mb-6">Account</h2>
+                    <div className="flex">
+                        <SetNoReallocationPeriod account={account} />
+                    </div>
+                </>
+            }
             {isAutorizedBot &&
                 <>
                     <h2 className="mb-6">Bot actions</h2>
