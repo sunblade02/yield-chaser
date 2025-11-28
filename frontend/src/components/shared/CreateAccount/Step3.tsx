@@ -12,6 +12,7 @@ import TransactionResult from "../TransactionResult";
 import React, { useEffect, useState } from "react";
 import { useCreateAccount } from "@/hooks/registry/useCreateAccount";
 import Loading from "../Loading";
+import { readableNumber } from "@/utils";
 
 const Step3 = ({
     setStep,
@@ -51,7 +52,7 @@ const Step3 = ({
         } else {
             appovalStep = false;
         }
-        estimatedTransactionsCost = (totalGasCost * Number(gasPrice) / 10**18).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 18 });
+        estimatedTransactionsCost = readableNumber(totalGasCost * Number(gasPrice), 18);
     }
 
     const { error: approveError, isLoading: approveIsLoading, isSuccess: approveIsSuccess, approve } = useApprove(registryContractAddress, Number(usdcAmount));
@@ -66,17 +67,12 @@ const Step3 = ({
         createAccount();
     };
 
-    const readableUsdcAmount = (Number(usdcAmount) / 10**6).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 6 });
-    const readableEthAmount = (Number(ethAmount) / 10**18).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 18 });
-
-    let readableBestNetAPY = null;
     let readableNetBenefit = "";
     let bestVaultName = "";
     if (strategy.bestVaultIndex) {
         bestVaultName = strategy.vaults[strategy.bestVaultIndex].name as string;
-        readableBestNetAPY = (Number(strategy.vaults[strategy.bestVaultIndex].netAPY) / 10**4).toLocaleString('en-US');
         const netBenefit = (Number(usdcAmount) / 10**6) * Number(strategy.vaults[strategy.bestVaultIndex].netAPY) / 10**4 * 0.01;
-        readableNetBenefit = netBenefit.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        readableNetBenefit = readableNumber(netBenefit, 2);
     }
 
     const hideTransactionResult = () => {
@@ -134,10 +130,10 @@ const Step3 = ({
                                         Deposit amounts
                                     </CardDescription>
                                     <div className="mt-2 text-3xl font-medium">
-                                        <TokenUSDC size={35} variant="mono" className="inline -mt-1" /> {readableUsdcAmount} USDC
+                                        <TokenUSDC size={35} variant="mono" className="inline -mt-1" /> {readableNumber(usdcAmount, 6)} USDC
                                     </div>
                                     <div className="mt-2 text-3xl font-medium">
-                                        <TokenETH size={35} variant="mono" className="inline -mt-1" /> {readableEthAmount} ETH
+                                        <TokenETH size={35} variant="mono" className="inline -mt-1" /> {readableNumber(ethAmount, 18)} ETH
                                     </div>
                                 </CardHeader>
                                 <CardContent className="border-t px-0 flex flex-col pt-6 gap-y-4">
@@ -162,7 +158,7 @@ const Step3 = ({
                                             Net APY
                                         </div>
                                         <div>
-                                            <Badge variant="secondary" className="rounded-md text-xs text-main bg-main">{readableBestNetAPY}%</Badge>
+                                            <Badge variant="secondary" className="rounded-md text-xs text-main bg-main">{strategy.bestVaultIndex ? readableNumber(strategy.vaults[strategy.bestVaultIndex].netAPY, 4) : 0}%</Badge>
                                         </div>
                                     </div>
                                     <div className="flex justify-between">
@@ -188,7 +184,7 @@ const Step3 = ({
                                 Yield Chaser only acts when net benefit is positive.
                             </div>
 
-                            {usdcAmount !== null && Number(usdcAmount) > 0 && <Button className="w-full mb-2" onClick={doApprove} disabled={!appovalStep}>Approve{appovalStep ? ` ${readableUsdcAmount} USDC for transfer` : ""}</Button>}
+                            {usdcAmount !== null && Number(usdcAmount) > 0 && <Button className="w-full mb-2" onClick={doApprove} disabled={!appovalStep}>Approve{appovalStep ? ` ${readableNumber(usdcAmount, 6)} USDC for transfer` : ""}</Button>}
                             <Button disabled={appovalStep} className="w-full mb-2" onClick={doCreateAccount}>Create account</Button>
                             <Button className="w-full" variant="outline" onClick={() => setStep(2)}>Cancel</Button>
                         </div>

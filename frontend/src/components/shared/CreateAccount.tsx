@@ -2,8 +2,10 @@ import { useState } from "react"
 import Step1 from "./CreateAccount/Step1";
 import Step2 from "./CreateAccount/Step2";
 import Step3 from "./CreateAccount/Step3";
-import { useGetStrategy } from "@/hooks/registry/useGetStrategy";
 import Loading from "./Loading";
+import { contractABI, contractAddress } from "@/constants/contracts/registry";
+import { useReadContract } from "wagmi";
+import { useGetStrategy } from "@/hooks/strategy/useGetStrategy";
 
 const CreateAccount = ({
     accountRefetch
@@ -14,11 +16,18 @@ const CreateAccount = ({
     const [ usdcAmount, setUsdcAmount ] = useState<number|null>(null);
     const [ ethAmount, setEthAmount ] = useState<number|null>(null);
 
-    const { data: strategy, isLoading } = useGetStrategy(0);
+    const { data: strategyAddress, isLoading: strategiesIsLoading } = useReadContract({
+            address: contractAddress,
+            abi: contractABI,
+            functionName: "strategies",
+            args: [ 0 ]
+    });
+
+    const { data: strategy, isLoading: strategyIsLoading } = useGetStrategy(strategyAddress);
 
     return (
         <>
-            {isLoading ?
+            {strategiesIsLoading || strategyIsLoading ?
                 <Loading title="Loading data..." />
             :
                 <>
