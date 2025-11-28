@@ -152,6 +152,10 @@
   }
 
   .bg-main {
+    background-color: var(--main);
+  }
+
+  .bg-main-foreground {
     background-color: var(--main-foreground);
   }
 }

@@ -1,10 +1,9 @@
 "use client"
 
-import CustomConnectButton from "@/components/shared/RainbowKit/CustomConnectButton"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatAddress, readableNumber } from "@/utils"
 import { useAccount } from "wagmi"
-import { CopyCheck, CopyIcon, Wallet } from "lucide-react"
+import { CopyCheck, CopyIcon, ExternalLink, Wallet } from "lucide-react"
 import { ButtonGroup, ButtonGroupText } from "../ui/button-group"
 import { Button } from "../ui/button"
 import { useState } from "react"
@@ -13,6 +12,8 @@ import { useGetAccount } from "@/hooks/account/useGetAccount"
 import Loading from "./Loading"
 import { useGetStrategy } from "@/hooks/strategy/useGetStrategy"
 import Vault from "./Strategy/Vault"
+import Activity from "./Dashboard/Activity"
+import { explorerAddressURI } from "@/constants"
 
 const Dashboard = ({
     accountAddress
@@ -24,6 +25,8 @@ const Dashboard = ({
 
     const { data: account, isLoading: accountIsLoading, isSuccess: accountIsSuccess } = useGetAccount(accountAddress);
     const { data: strategy, isLoading: strategyIsLoading, isSuccess: strategyIsSuccess } = useGetStrategy(account.strategy);
+
+    
 
     let currentVaultIndex = null;
     if (accountIsSuccess && strategyIsSuccess) {
@@ -48,7 +51,7 @@ const Dashboard = ({
 
     return (
         <>
-            {accountIsLoading && strategyIsLoading && isConnected ?
+            {(accountIsLoading || strategyIsLoading) && isConnected ?
                 <Loading title="Loading data..." />
             :
                 <div className="flex flex-cols justify-center">
@@ -57,7 +60,10 @@ const Dashboard = ({
                         {accountAddress && 
                             <ButtonGroup className="mb-6">
                                 <ButtonGroupText><Wallet />{formatAddress(accountAddress)}</ButtonGroupText>
-                                <Button onClick={copyToClipboard}>{copyDone ? <CopyCheck /> : <CopyIcon />}</Button>
+                                <Button variant="outline" asChild>
+                                    <a href={explorerAddressURI + accountAddress} target="_blank"><ExternalLink /></a>
+                                </Button>
+                                <Button variant="outline" onClick={copyToClipboard}>{copyDone ? <CopyCheck /> : <CopyIcon />}</Button>
                             </ButtonGroup>
                         }
 
@@ -123,29 +129,7 @@ const Dashboard = ({
                             </Card>
                         }
                         
-                        <Card className="w-full rounded-lg p-8">
-                            <CardHeader className="p-0">
-                                <CardTitle>
-                                    <h2>Agent Activity</h2>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                { isConnected ?
-                                    <>
-                                        No activity yet. Deposit USDC to start receiving simulations and yield events.
-                                    </>
-                                :
-                                    <>
-                                        <div className="text-center text-muted-foreground">
-                                            <div className="mb-6">
-                                                No activity yet. Connect your wallet to view your simulations, reallocations, and yield events.
-                                            </div>
-                                            <CustomConnectButton variant="outline" />
-                                        </div>
-                                    </>
-                                }
-                            </CardContent>
-                        </Card>
+                        <Activity accountAddress={accountAddress as string} />
                     </div>
                 </div>
             }
