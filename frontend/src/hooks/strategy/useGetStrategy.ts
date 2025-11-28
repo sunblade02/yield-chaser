@@ -1,49 +1,37 @@
 
 import { contractABI as ivaultv2ContractABI } from "@/constants/contracts/ivaultv2";
-import { contractABI as registryContractABI, contractAddress as registryContractAddress } from "@/constants/contracts/registry";
 import { contractABI as strategyContractABI } from "@/constants/contracts/strategy";
 import { StrategyType } from "@/types/StrategyType";
 import { VaultType } from "@/types/VaultType";
-import { useReadContract, useReadContracts } from "wagmi";
+import { useReadContracts } from "wagmi";
 
-export function useGetStrategy(index: number) {
-    let strategy: StrategyType = {
-        address: null,
-        name: null,
-        vaults: [],
-        bestVaultIndex: null
-    };
-
-    const { data: strategyAddress, isSuccess: strategiesIsSuccess, isLoading: strategiesIsLoading } = useReadContract({
-        address: registryContractAddress,
-        abi: registryContractABI,
-        functionName: "strategies",
-        args: [ index ]
-    });
-
-    if (strategiesIsSuccess) {
-        strategy.address = (strategyAddress as  `0x${string}`);
-    }
-
+export function useGetStrategy(contractAddress: any) {
     const { data: strategyData, isSuccess: strategyDataIsSuccess, isLoading: strategyDataIsLoading } = useReadContracts({
         contracts: [
             {
-                address: (strategyAddress as  `0x${string}`),
+                address: contractAddress,
                 abi: strategyContractABI,
                 functionName: "getVaults",
             },
             {
-                address: (strategyAddress as  `0x${string}`),
+                address: contractAddress,
                 abi: strategyContractABI,
                 functionName: "getBestVault",
             },
             {
-                address: (strategyAddress as  `0x${string}`),
+                address: contractAddress,
                 abi: strategyContractABI,
                 functionName: "name",
             }
         ]
     });
+    
+    let strategy: StrategyType = {
+        address: contractAddress as `0x${string}`,
+        name: null,
+        vaults: [],
+        bestVaultIndex: null
+    };
 
     let nameContracts: any[] = [];
     let tvlContracts: any[] = [];
@@ -74,7 +62,7 @@ export function useGetStrategy(index: number) {
         }));
         
         netAPYContracts = vaultAdresses.map(vaultAddress => ({
-            address: strategyAddress,
+            address: contractAddress,
             abi: strategyContractABI,
             functionName: "vaults",
             args: [ vaultAddress ]
@@ -90,23 +78,23 @@ export function useGetStrategy(index: number) {
         strategy.name = strategyData[2].result as string;
     }
 
-    const { data: vaultNamesData, isSuccess: vaultNamesIsSucess, isLoading: vaultNamesIsLoading } = useReadContracts({contracts: nameContracts});
-    const { data: tvlData, isSuccess: tvlIsSucess, isLoading: tvlIsLoading } = useReadContracts({contracts: tvlContracts});
-    const { data: netAPYData, isSuccess: netAPYIsSucess, isLoading: netAPYIsLoading } = useReadContracts({contracts: netAPYContracts});
+    const { data: vaultNamesData, isSuccess: vaultNamesIsSuccess, isLoading: vaultNamesIsLoading } = useReadContracts({contracts: nameContracts});
+    const { data: tvlData, isSuccess: tvlIsSuccess, isLoading: tvlIsLoading } = useReadContracts({contracts: tvlContracts});
+    const { data: netAPYData, isSuccess: netAPYIsSuccess, isLoading: netAPYIsLoading } = useReadContracts({contracts: netAPYContracts});
 
-    if (vaultNamesIsSucess) {
+    if (vaultNamesIsSuccess) {
         for (let i = 0; i < strategy.vaults.length; i++) {
             strategy.vaults[i].name = vaultNamesData?.[i]?.result as string;
         }
     }
 
-    if (tvlIsSucess) {
+    if (tvlIsSuccess) {
         for (let i = 0; i < strategy.vaults.length; i++) {
             strategy.vaults[i].tvl = tvlData?.[i]?.result as number;
         }
     }
 
-    if (netAPYIsSucess) {
+    if (netAPYIsSuccess) {
         for (let i = 0; i < strategy.vaults.length; i++) {
             strategy.vaults[i].netAPY = netAPYData?.[i]?.result as number;
         }
@@ -114,7 +102,7 @@ export function useGetStrategy(index: number) {
 
     return {
         data: strategy,
-        isSuccess: strategiesIsSuccess && strategyDataIsSuccess && vaultNamesIsSucess && tvlIsSucess && netAPYIsSucess,
-        isLoading: strategiesIsLoading || strategyDataIsLoading || vaultNamesIsLoading || tvlIsLoading || netAPYIsLoading
+        isSuccess: strategyDataIsSuccess && vaultNamesIsSuccess && tvlIsSuccess && netAPYIsSuccess,
+        isLoading: strategyDataIsLoading || vaultNamesIsLoading || tvlIsLoading || netAPYIsLoading
     };
 }

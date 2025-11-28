@@ -29,6 +29,8 @@ contract YcAccount is IYcAccount, Ownable {
 
     IYcStrategy public strategy;
 
+    IVaultV2 public currentVault;
+
     //----- FUNCTIONS -----//
 
     constructor(ERC20 _usdc, IYcStrategy _strategy, address _owner) Ownable(_owner) {
@@ -42,6 +44,8 @@ contract YcAccount is IYcAccount, Ownable {
         require(address(vault) != address(0), NoVault());
 
         uint amount = usdc.balanceOf(address(this));
+        currentVault = vault;
+
         usdc.approve(address(vault), amount);
         vault.deposit(amount, address(this));
 

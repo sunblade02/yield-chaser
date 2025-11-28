@@ -45,7 +45,9 @@ async function main(): Promise<void> {
     console.log("Strategy was added to registry");
 
     await usdc.approve(registry, 1_000_000_000n);
-    await registry.createAccount(strategy, 1_000_000_000n);
+    await registry.createAccount(strategy, 1_000_000_000n, { 
+        value: ethers.parseEther("0.5")
+    });
     const account = await registry.accounts(signers[0]);
     console.log("Account for signer 0 was created : " + account);
 }
