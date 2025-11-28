@@ -28,6 +28,7 @@ contract YcRegistry is AccessControl {
 
     event StrategyAdded(IYcStrategy strategy);
     event AccountCreated(address indexed owner, IYcStrategy strategy, uint usdcAmount, uint ethAmount);
+    event StrategyNetAPYsUpdated(address bot, IYcStrategy strategy);
 
     //----- STATE VARIABLES -----//
 
@@ -106,6 +107,14 @@ contract YcRegistry is AccessControl {
     /// This function can only be called by admin.
     function revokeBotRole(address _account) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
         return _revokeRole(BOT_ROLE, _account);
+    }
+    
+    /// @notice Update the net APY of the vaults for a specified strategy.
+    /// This function can only be called by tan authorized bot.
+    function updateStrategyVaultsNetAPY(IYcStrategy _strategy, IVaultV2[] memory _vaults, uint[] memory _vaultsNetApy) external onlyRole(BOT_ROLE) {
+        _strategy.updateVaultsNetAPY(_vaults, _vaultsNetApy);
+
+        emit StrategyNetAPYsUpdated(msg.sender, _strategy);
     }
 
     receive() payable external {

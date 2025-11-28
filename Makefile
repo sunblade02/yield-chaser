@@ -14,7 +14,7 @@ run-hardhat-node:
 	docker exec -w /app/backend -e TERM=xterm-256color -ti yield-chaser-dev npx hardhat node
 
 deploy-contracts-localhost:
-	docker exec -w /app/backend -e TERM=xterm-256color -ti yield-chaser-dev npx hardhat run scripts/deploy-localhost.ts
+	docker exec -w /app/backend -e TERM=xterm-256color -ti yield-chaser-dev npx hardhat run scripts/localhost/deploy.ts
 
 test:
 	docker exec -w /app/backend yield-chaser-dev npx hardhat test --coverage
