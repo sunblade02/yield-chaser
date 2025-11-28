@@ -50,7 +50,7 @@ contract YcStrategy is IYcStrategy, Ownable {
 
     /// @notice Set the strategy's name
     /// This function can only be called by the owner.
-    function setName(string memory _name) public onlyOwner {
+    function setName(string memory _name) external onlyOwner {
         string memory oldName = name;
         name = _name;
 
@@ -59,14 +59,14 @@ contract YcStrategy is IYcStrategy, Ownable {
 
     /// @notice Update the net APY of the strategy's vaults.
     /// This function can only be called by the owner.
-    function updateVaultsNetAPY(IVaultV2[] memory _vaults, uint[] memory vaultsNetApy) public onlyOwner {
+    function updateVaultsNetAPY(IVaultV2[] memory _vaults, uint[] memory _vaultsNetApy) external onlyOwner {
         for (uint i; i < _vaults.length; i++) {
-            if (i < vaultsNetApy.length) {
-                vaults[_vaults[i]] = vaultsNetApy[i];
+            if (i < _vaultsNetApy.length) {
+                vaults[_vaults[i]] = _vaultsNetApy[i];
             }
         }
 
-        emit VaultsNetAPYUpdated(_vaults, vaultsNetApy);
+        emit VaultsNetAPYUpdated(_vaults, _vaultsNetApy);
     }
 
     /// @notice Returns the vault with the best yield based on the yield data.

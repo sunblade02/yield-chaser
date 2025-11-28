@@ -50,6 +50,9 @@ async function main(): Promise<void> {
     });
     const account = await registry.accounts(signers[0]);
     console.log("Account for signer 0 was created : " + account);
+
+    await registry.grantBotRole(signers[0]);
+    console.log(signers[0].address + " is now an authorized bot");
 }
 
 await main().catch((error) => {

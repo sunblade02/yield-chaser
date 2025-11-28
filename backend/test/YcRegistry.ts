@@ -48,8 +48,20 @@ async function setupWithStrategy() {
     return { user1, user2, usdc, registry, yct, strategy, vault1, vault2 };
 }
 
+async function setupWithAuthorizedBot() {
+    ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithStrategy());
+
+    const signers = await ethers.getSigners();
+    const bot = signers[2];
+
+    await registry.grantBotRole(bot);
+
+    return { user1, user2, bot, usdc, registry, yct, strategy, vault1, vault2 };
+}
+
 let user1: any;
 let user2: any;
+let bot: any;
 let usdc: any;
 let registry: any;
 let yct: any;
@@ -240,6 +252,48 @@ describe("YcRegistry", () => {
             await expect(registry.createAccount(strategy, ethers.parseUnits("1000", 6), {
                 value: ethers.parseEther("0.001")
             })).to.be.revertedWithCustomError(registry, "AccountAlreadyExists");
+        });
+    });
+
+    describe("updateStrategyVaultsNetAPY", () => {
+        beforeEach(async () => {
+            ({ user1, user2, bot, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithAuthorizedBot());
+        });
+
+        it("Should update vaults net APYs for a strategy", async function () {
+            expect(await strategy.vaults(vault1)).to.be.equal(8e4);
+            expect(await strategy.vaults(vault2)).to.be.equal(85e3);
+
+            await registry.connect(bot).updateStrategyVaultsNetAPY(strategy, [
+                vault1,
+                vault2
+            ], [
+                75e3, // 7,5 % net APY
+                8e3,  // 8 % net APY
+            ]);
+
+            expect(await strategy.vaults(vault1)).to.be.equal(75e3);
+            expect(await strategy.vaults(vault2)).to.be.equal(8e3);
+        });
+        
+        it("Should emit a StrategyNetAPYsUpdated event", async function () {
+            await expect(registry.connect(bot).updateStrategyVaultsNetAPY(strategy,[
+                vault1,
+                vault2
+            ], [
+                75e3, // 7,5 % net APY
+                8e3,  // 8 % net APY
+            ])).to.emit(registry, "StrategyNetAPYsUpdated").withArgs(bot, strategy);
+        });
+        
+        it.only("Only bot could update vaults net APYs for a strategy", async function () {
+            await expect(registry.updateStrategyVaultsNetAPY(strategy, [
+                vault1,
+                vault2
+            ], [
+                8e4,  // 8 % net APY
+                85e3, // 8,5 % net APY
+            ])).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
         });
     });
 });

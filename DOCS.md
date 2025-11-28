@@ -298,6 +298,15 @@ function revokeBotRole(address _account) external returns (bool)
 Revokes the role `BOT ROLE` from an address
 This function can only be called by admin.
 
+### updateStrategyVaultsNetAPY
+
+```solidity
+function updateStrategyVaultsNetAPY(contract IYcStrategy _strategy, contract IVaultV2[] _vaults, uint256[] _vaultsNetApy) external
+```
+
+Update the net APY of the vaults for a specified strategy.
+This function can only be called by tan authorized bot.
+
 ### receive
 
 ```solidity
@@ -458,6 +467,12 @@ event StrategyAdded(contract IYcStrategy strategy)
 
 ```solidity
 event AccountCreated(address owner, contract IYcStrategy strategy, uint256 usdcAmount, uint256 ethAmount)
+```
+
+### StrategyNetAPYsUpdated
+
+```solidity
+event StrategyNetAPYsUpdated(address bot, contract IYcStrategy strategy)
 ```
 
 inherits AccessControl:

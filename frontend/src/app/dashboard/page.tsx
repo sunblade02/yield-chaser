@@ -21,17 +21,15 @@ const DashboardPage = () => {
 
     const hasAccount = typeof accountAddress === "string" && accountAddress !== zeroAddress;
 
-    return (
-        (hasAccount ?
-            <Dashboard accountAddress={accountAddress} />
+    return (hasAccount ?
+        <Dashboard accountAddress={accountAddress} />
+    :
+        (!isConnected ?
+            <Dashboard />
         :
-            (!isConnected ?
-                <Dashboard />
-            :
-                <CreateAccount accountRefetch={accountRefetch} />
-            )
+            <CreateAccount accountRefetch={accountRefetch} />
         )
-    )
+    );
 }
 
 export default DashboardPage
