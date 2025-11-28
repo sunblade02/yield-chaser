@@ -158,7 +158,7 @@ const Step3 = ({
                                             Net APY
                                         </div>
                                         <div>
-                                            <Badge variant="secondary" className="rounded-md text-xs text-main bg-main">{strategy.bestVaultIndex ? readableNumber(strategy.vaults[strategy.bestVaultIndex].netAPY, 4) : 0}%</Badge>
+                                            <Badge variant="secondary" className="rounded-md text-xs text-main bg-main-foreground">{strategy.bestVaultIndex ? readableNumber(strategy.vaults[strategy.bestVaultIndex].netAPY, 4) : 0}%</Badge>
                                         </div>
                                     </div>
                                     <div className="flex justify-between">
