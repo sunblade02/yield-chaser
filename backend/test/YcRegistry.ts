@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { ZeroAddress } from "ethers";
 import { network } from "hardhat";
 
 const { ethers } = await network.connect();
@@ -10,7 +11,9 @@ async function setupWithoutStrategy() {
     await usdc.faucet(user1, ethers.parseUnits("10000", 6));
     await usdc.faucet(user2, ethers.parseUnits("10000", 6));
 
-    const registry = await ethers.deployContract("YcRegistry", [usdc]);
+    const ethFixedReallocationFee = ethers.parseEther("0.00004");
+    const usdcYieldFeeRate = ethers.parseUnits("5", 3); // 5 %
+    const registry = await ethers.deployContract("YcRegistry", [ usdc, ethFixedReallocationFee, usdcYieldFeeRate ]);
 
     const yctAddress = await registry.yct();
     const yct = await ethers.getContractAt("YcToken", yctAddress);
@@ -175,23 +178,69 @@ describe("YcRegistry", () => {
         });
     });
 
+    describe("setEthFixedReallocationFee", () => {
+
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
+        });
+
+        it("Should set ETH fixed reallocation fee", async function () {
+            expect(await registry.ethFixedReallocationFee()).to.be.equal(ethers.parseEther("0.00004"));
+
+            await registry.setEthFixedReallocationFee(ethers.parseEther("0.00005"));
+
+            expect(await registry.ethFixedReallocationFee()).to.be.equal(ethers.parseEther("0.00005"));
+        });
+
+        it("Should emit a EthFixedReallocationFeeSet event", async function () {
+            await expect(registry.setEthFixedReallocationFee(ethers.parseEther("0.00005"))).to.emit(registry, "EthFixedReallocationFeeSet").withArgs(ethers.parseEther("0.00004"), ethers.parseEther("0.00005"));
+        });
+
+        it("Only admin could set ETH fixed reallocation fee", async function () {
+            await expect(registry.connect(user2).setEthFixedReallocationFee(ethers.parseEther("0.00005"))).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
+        });
+    });
+
+    describe("setUsdcYieldFeeRate", () => {
+
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
+        });
+
+        it("Should set USDC yield fee rate", async function () {
+            expect(await registry.usdcYieldFeeRate()).to.be.equal(ethers.parseUnits("5", 3));
+
+            await registry.setUsdcYieldFeeRate(ethers.parseUnits("65", 2));
+
+            expect(await registry.usdcYieldFeeRate()).to.be.equal(ethers.parseUnits("65", 2));
+        });
+
+        it("Should emit a UsdcYieldFeeRateSet event", async function () {
+            await expect(registry.setUsdcYieldFeeRate(ethers.parseUnits("65", 2))).to.emit(registry, "UsdcYieldFeeRateSet").withArgs(ethers.parseUnits("5", 3), ethers.parseUnits("65", 2));
+        });
+
+        it("Only admin could set USDC yield fee rate", async function () {
+            await expect(registry.connect(user2).setUsdcYieldFeeRate(ethers.parseUnits("65", 2))).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
+        });
+    });
+
     describe("createAccount", () => {
         beforeEach(async () => {
             ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithStrategy());
         });
 
         it("Should create an account", async function () {
-            expect(await registry.accounts(user1)).to.be.equal("0x0000000000000000000000000000000000000000");
+            expect(await registry.accounts(user1)).to.be.equal(ZeroAddress);
 
-            await registry.createAccount(strategy, ethers.parseUnits("1000", 6), {
+            await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
             });
 
-            expect(await registry.accounts(user1)).not.to.be.equal("0x0000000000000000000000000000000000000000");
+            expect(await registry.accounts(user1)).not.to.be.equal(ZeroAddress);
         });
 
         it("Should transfer ETH to the new account", async function () {
-            await registry.createAccount(strategy, ethers.parseUnits("1000", 6), {
+            await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
             });
 
@@ -203,7 +252,7 @@ describe("YcRegistry", () => {
         it("Should mint 1 YCT for the new account", async function () {
             expect(await yct.totalSupply()).to.be.equal(0);
 
-            await registry.createAccount(strategy, ethers.parseUnits("1000", 6), {
+            await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
             });
 
@@ -217,7 +266,7 @@ describe("YcRegistry", () => {
             const balance0 = await usdc.balanceOf(vault2);
             const shares = await vault2.previewDeposit(ethers.parseUnits("1000", 6));
 
-            await registry.createAccount(strategy, ethers.parseUnits("1000", 6), {
+            await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
             });
 
@@ -231,7 +280,7 @@ describe("YcRegistry", () => {
         });
 
         it("Should emit a AccountCreated event", async function () {
-            await expect(registry.createAccount(strategy, ethers.parseUnits("1000", 6), {
+            await expect(registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
             })).to.emit(registry, "AccountCreated").withArgs(user1, strategy, ethers.parseUnits("1000", 6), ethers.parseEther("0.001"));
         });
@@ -239,17 +288,17 @@ describe("YcRegistry", () => {
         it("Only an account with allowed strategy can be created", async function () {
             const strategy2 = await ethers.deployContract("YcStrategy", [ "Strategy 2", [] ]);
 
-            await expect(registry.createAccount(strategy2, ethers.parseUnits("1000", 6), {
+            await expect(registry.createAccount(strategy2, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
             })).to.be.revertedWithCustomError(registry, "NotAllowedStrategy");
         });
 
         it("Only one account per user can be created", async function () {
-            await registry.createAccount(strategy, ethers.parseUnits("1000", 6), {
+            await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
             });
             
-            await expect(registry.createAccount(strategy, ethers.parseUnits("1000", 6), {
+            await expect(registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
             })).to.be.revertedWithCustomError(registry, "AccountAlreadyExists");
         });

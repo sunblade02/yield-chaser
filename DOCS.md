@@ -13,6 +13,24 @@ IYcAccount : contracts/IYcAccount.sol
 function allocate() external
 ```
 
+### reallocate
+
+```solidity
+function reallocate() external
+```
+
+### checkReallocation
+
+```solidity
+function checkReallocation() external view returns (contract IVaultV2, uint128)
+```
+
+### setNoReallocationPeriod
+
+```solidity
+function setNoReallocationPeriod(uint32 _noReallocationPeriod) external
+```
+
 ## IYcFactory
 
 ### Contract
@@ -23,7 +41,7 @@ IYcFactory : contracts/IYcFactory.sol
 ### createAccount
 
 ```solidity
-function createAccount(contract ERC20 _usdc, contract IYcStrategy _strategy, address _owner) external returns (contract IYcAccount)
+function createAccount(contract ERC20 _usdc, contract IYcStrategy _strategy, address _owner, uint32 _noReallocationPeriod) external returns (contract IYcAccount)
 ```
 
 ## IYcStrategy
@@ -42,13 +60,25 @@ function addVault(contract IVaultV2 _vault) external
 ### updateVaultsNetAPY
 
 ```solidity
-function updateVaultsNetAPY(contract IVaultV2[] _vaults, uint256[] vaultsNetApy) external
+function updateVaultsNetAPY(contract IVaultV2[] _vaults, uint32[] vaultsNetApy) external
 ```
 
 ### getBestVault
 
 ```solidity
 function getBestVault() external view returns (contract IVaultV2)
+```
+
+### setName
+
+```solidity
+function setName(string _name) external
+```
+
+### getVaults
+
+```solidity
+function getVaults() external view returns (contract IVaultV2[])
 ```
 
 ## YcAccount
@@ -65,24 +95,37 @@ YcAccount : contracts/YcAccount.sol
 ### constructor
 
 ```solidity
-constructor(contract ERC20 _usdc, contract IYcStrategy _strategy, address _owner) public
+constructor(contract YcRegistry _registry, contract ERC20 _usdc, contract IYcStrategy _strategy, address _owner, uint32 _noReallocationPeriod) public
 ```
 
 ### allocate
 
 ```solidity
-function allocate() external
+function allocate() public
 ```
 
 Allocates USDC to the highest performing yield vault according to the strategy.
 
+### reallocate
+
+```solidity
+function reallocate() external
+```
+
+Reallocates USDC to the highest performing yield vault according to the strategy.
+The account pays fees to the registry.
+The account receives 1 YCT.
+The sender is refunded for the gas cost.
+
+_reentrancy attack / DoS Gas limit_
+
 ### checkReallocation
 
 ```solidity
-function checkReallocation() external view returns (bool)
+function checkReallocation() public view returns (contract IVaultV2, uint128)
 ```
 
-Checks for reallocation
+Checks for reallocation and returns used data
 
 ### setNoReallocationPeriod
 
@@ -156,6 +199,12 @@ inherits IYcAccount:
 event USDCAllocated(uint256 amount, contract IVaultV2 vault)
 ```
 
+### USDCDisallocated
+
+```solidity
+event USDCDisallocated(uint256 amount, contract IVaultV2 vault)
+```
+
 ### ETHReceived
 
 ```solidity
@@ -195,7 +244,7 @@ constructor() public
 ### createAccount
 
 ```solidity
-function createAccount(contract ERC20 _usdc, contract IYcStrategy _strategy, address _owner) external returns (contract IYcAccount)
+function createAccount(contract ERC20 _usdc, contract IYcStrategy _strategy, address _owner, uint32 _noReallocationPeriod) external returns (contract IYcAccount)
 ```
 
 Creates a new account with the USDC address and a strategy for the registry.
@@ -279,7 +328,7 @@ YcRegistry : contracts/YcRegistry.sol
 ### constructor
 
 ```solidity
-constructor(contract ERC20 _usdc) public
+constructor(contract ERC20 _usdc, uint128 _ethFixedReallocationFee, uint16 _usdcYieldFeeRate) public
 ```
 
 ### addStrategy
@@ -295,7 +344,7 @@ The strategy must be owned by the registry.
 ### createAccount
 
 ```solidity
-function createAccount(contract IYcStrategy _strategy, uint256 _amount) external payable returns (contract IYcAccount)
+function createAccount(contract IYcStrategy _strategy, uint256 _amount, uint32 _noReallocationPeriod) external payable returns (contract IYcAccount)
 ```
 
 Creates a new account to the registry.
@@ -321,14 +370,48 @@ function revokeBotRole(address _account) external returns (bool)
 Revokes the role `BOT ROLE` from an address
 This function can only be called by admin.
 
+### addStrategyVault
+
+```solidity
+function addStrategyVault(contract IYcStrategy _strategy, contract IVaultV2 _vault) external
+```
+
+Adds a vault to a strategy.
+This function can only be called by admin.
+
 ### updateStrategyVaultsNetAPY
 
 ```solidity
-function updateStrategyVaultsNetAPY(contract IYcStrategy _strategy, contract IVaultV2[] _vaults, uint256[] _vaultsNetApy) external
+function updateStrategyVaultsNetAPY(contract IYcStrategy _strategy, contract IVaultV2[] _vaults, uint32[] _vaultsNetApy) external
 ```
 
 Update the net APY of the vaults for a specified strategy.
-This function can only be called by tan authorized bot.
+This function can only be called by an authorized bot.
+
+### setEthFixedReallocationFee
+
+```solidity
+function setEthFixedReallocationFee(uint128 _ethFixedReallocationFee) external
+```
+
+Set the ETH fixed reallocation fee used when a bot reallocate USDC from an account.
+
+### setUsdcYieldFeeRate
+
+```solidity
+function setUsdcYieldFeeRate(uint16 _usdcYieldFeeRate) external
+```
+
+Set the USDC Yield Fee rate used when a bot reallocate USDC from an account.
+
+### mintYct
+
+```solidity
+function mintYct() external
+```
+
+Mints 1 YCT and transfers it to the account.
+This function can only be called by an account.
 
 ### receive
 
@@ -498,6 +581,30 @@ event AccountCreated(address owner, contract IYcStrategy strategy, uint256 usdcA
 event StrategyNetAPYsUpdated(address bot, contract IYcStrategy strategy)
 ```
 
+### EthFixedReallocationFeeSet
+
+```solidity
+event EthFixedReallocationFeeSet(uint128 oldEthFixedReallocationFee, uint128 newEthFixedReallocationFee)
+```
+
+### UsdcYieldFeeRateSet
+
+```solidity
+event UsdcYieldFeeRateSet(uint16 oldUsdcYieldFeeRate, uint16 newUsdcYieldFeeRate)
+```
+
+### YctMinted
+
+```solidity
+event YctMinted(address owner, uint256 amount)
+```
+
+### StrategyVaultAdded
+
+```solidity
+event StrategyVaultAdded(contract IYcStrategy strategy, contract IVaultV2 vault)
+```
+
 inherits AccessControl:
 inherits ERC165:
 inherits IERC165:
@@ -535,143 +642,6 @@ _Emitted when `account` is revoked `role`.
 `sender` is the account that originated the contract call:
   - if using `revokeRole`, it is the admin role bearer
   - if using `renounceRole`, it is the role bearer (i.e. `account`)_
-
-## YcStrategy
-
-This smart contract implements the logic to select the vault with the best yield.
-It maintains a list of vaults used in the strategy.
-
-### Contract
-YcStrategy : contracts/YcStrategy.sol
-
- --- 
-### Functions:
-### constructor
-
-```solidity
-constructor(string _name, contract IVaultV2[] _vaults) public
-```
-
-### addVault
-
-```solidity
-function addVault(contract IVaultV2 _vault) public
-```
-
-Adds a vault to the strategy.
-This function can only be called by the owner.
-
-### setName
-
-```solidity
-function setName(string _name) public
-```
-
-Set the strategy's name
-This function can only be called by the owner.
-
-### updateVaultsNetAPY
-
-```solidity
-function updateVaultsNetAPY(contract IVaultV2[] _vaults, uint256[] vaultsNetApy) public
-```
-
-Update the net APY of the strategy's vaults.
-This function can only be called by the owner.
-
-### getBestVault
-
-```solidity
-function getBestVault() external view returns (contract IVaultV2)
-```
-
-Returns the vault with the best yield based on the yield data.
-
-### getVaults
-
-```solidity
-function getVaults() external view returns (contract IVaultV2[])
-```
-
-Returns the vaults in the strategy
-
-inherits Ownable:
-### owner
-
-```solidity
-function owner() public view virtual returns (address)
-```
-
-_Returns the address of the current owner._
-
-### _checkOwner
-
-```solidity
-function _checkOwner() internal view virtual
-```
-
-_Throws if the sender is not the owner._
-
-### renounceOwnership
-
-```solidity
-function renounceOwnership() public virtual
-```
-
-_Leaves the contract without owner. It will not be possible to call
-`onlyOwner` functions. Can only be called by the current owner.
-
-NOTE: Renouncing ownership will leave the contract without an owner,
-thereby disabling any functionality that is only available to the owner._
-
-### transferOwnership
-
-```solidity
-function transferOwnership(address newOwner) public virtual
-```
-
-_Transfers ownership of the contract to a new account (`newOwner`).
-Can only be called by the current owner._
-
-### _transferOwnership
-
-```solidity
-function _transferOwnership(address newOwner) internal virtual
-```
-
-_Transfers ownership of the contract to a new account (`newOwner`).
-Internal function without access restriction._
-
-inherits IYcStrategy:
-
- --- 
-### Events:
-### VaultAdded
-
-```solidity
-event VaultAdded(contract IVaultV2 vault)
-```
-
-### VaultsNetAPYUpdated
-
-```solidity
-event VaultsNetAPYUpdated(contract IVaultV2[] vault, uint256[] netAPY)
-```
-
-### NameSet
-
-```solidity
-event NameSet(string oldName, string newName)
-```
-
-inherits Ownable:
-### OwnershipTransferred
-
-```solidity
-event OwnershipTransferred(address previousOwner, address newOwner)
-```
-
-inherits IYcStrategy:
 
 ## YcToken
 

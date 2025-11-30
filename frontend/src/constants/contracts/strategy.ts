@@ -99,9 +99,9 @@ export const contractABI = [
         },
         {
           "indexed": false,
-          "internalType": "uint256[]",
+          "internalType": "uint32[]",
           "name": "netAPY",
-          "type": "uint256[]"
+          "type": "uint32[]"
         }
       ],
       "name": "VaultsNetAPYUpdated",
@@ -213,9 +213,9 @@ export const contractABI = [
           "type": "address[]"
         },
         {
-          "internalType": "uint256[]",
+          "internalType": "uint32[]",
           "name": "_vaultsNetApy",
-          "type": "uint256[]"
+          "type": "uint32[]"
         }
       ],
       "name": "updateVaultsNetAPY",
@@ -234,9 +234,9 @@ export const contractABI = [
       "name": "vaults",
       "outputs": [
         {
-          "internalType": "uint256",
+          "internalType": "uint32",
           "name": "",
-          "type": "uint256"
+          "type": "uint32"
         }
       ],
       "stateMutability": "view",

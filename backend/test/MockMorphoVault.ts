@@ -36,7 +36,6 @@ async function setupWithDepositsAndIncAssets() {
     
     await vault.incAssets(90_000_000); // +6%
 
-
     await usdc.faucet(user2.address, ethers.parseUnits("250", 6));
     await usdc.connect(user2).approve(vault.getAddress(), ethers.parseUnits("250", 6));
     await vault.connect(user2).deposit(ethers.parseUnits("250", 6), user2.address);
@@ -219,11 +218,9 @@ describe("MockMorphoVault", function () {
         });
 
         it("Should transfer USDC with interest minus fees when calling the redeem() function", async function () {
-            expect(await usdc.balanceOf(user1.address)).to.equal(0);
+            expect(await usdc.balanceOf(user1)).to.equal(0);
             expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1840", 6));
 
-            // total capital = 1 500 + 250 = 1 750
-            // total supply = 1 500 + 250 * 1 500 / 1 590 ~= 1 735,849056
             // total assets = 1 500 + 90 + 250 = 1 840
             // assets = 1 000 * 1840 / 1735,849056 ~= 1 060
             // capital part = 1 000 * 1 750 / 1 735,849056 ~= 1 008,152174
@@ -257,10 +254,10 @@ describe("MockMorphoVault", function () {
 
             // total capital (t1) = 1 750 - 1 008,152174 = 741,847826
             // total supply (t1) = 1 735,849056 - 1 000 = 735,849056
-            // total assets (t1) = 1 840 - 1 060 = 780
+            // total assets (t1) = 1 840 - 1 060 + 8,295652 = 788,295652
 
             expect(await vault.totalCapital()).to.equal(741_847_826);
-            expect(await vault._totalAssets()).to.equal(ethers.parseUnits("780", 6));
+            expect(await vault._totalAssets()).to.be.closeTo(788_295_652, 1);
             expect(await vault.totalSupply()).to.equal(735_849_056);
             expect(await vault.balanceOf(user1.address)).to.equal(0);
         });

@@ -14,7 +14,7 @@ contract YcStrategy is IYcStrategy, Ownable {
     //----- EVENTS -----//
 
     event VaultAdded(IVaultV2 vault);
-    event VaultsNetAPYUpdated(IVaultV2[] vault, uint[] netAPY);
+    event VaultsNetAPYUpdated(IVaultV2[] vault, uint32[] netAPY);
     event NameSet(string oldName, string newName);
 
     //----- STATE VARIABLES -----//
@@ -24,7 +24,7 @@ contract YcStrategy is IYcStrategy, Ownable {
     IVaultV2[] public vaultsArray;
 
     /// @dev Stores the net APY of each vault, scaled by 10^4 (i.e., 4 decimals).
-    mapping(IVaultV2 => uint) public vaults;
+    mapping(IVaultV2 => uint32) public vaults;
 
     //----- FUNCTIONS -----//
 
@@ -51,15 +51,14 @@ contract YcStrategy is IYcStrategy, Ownable {
     /// @notice Set the strategy's name
     /// This function can only be called by the owner.
     function setName(string memory _name) external onlyOwner {
-        string memory oldName = name;
-        name = _name;
+        (name, _name) = (_name, name);
 
-        emit NameSet(oldName, name);
+        emit NameSet(_name, name);
     }
 
     /// @notice Update the net APY of the strategy's vaults.
     /// This function can only be called by the owner.
-    function updateVaultsNetAPY(IVaultV2[] memory _vaults, uint[] memory _vaultsNetApy) external onlyOwner {
+    function updateVaultsNetAPY(IVaultV2[] memory _vaults, uint32[] memory _vaultsNetApy) external onlyOwner {
         for (uint i; i < _vaults.length; i++) {
             if (i < _vaultsNetApy.length) {
                 vaults[_vaults[i]] = _vaultsNetApy[i];

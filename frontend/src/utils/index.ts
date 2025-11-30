@@ -4,7 +4,7 @@ export function formatAddress(address: string): string {
     return `${start}...${end}`;
 }
 
-export function readableNumber(balance: any, decimals: number) {
+export function readableNumber(balance: any, decimals: number, maximumFractionDigits?: number) {
     balance = balance ? Number(balance) : 0;
-    return (balance / 10**decimals).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: decimals })
+    return (balance / 10**decimals).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: maximumFractionDigits ?? decimals })
 }

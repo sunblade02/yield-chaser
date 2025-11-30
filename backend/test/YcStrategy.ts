@@ -46,6 +46,8 @@ describe("YcStrategy", () => {
         });
 
         it("Should set name", async function () {
+            expect(await strategy.name()).to.be.equal("Strategy 1");
+
             await strategy.setName("Strategy 2");
 
             expect(await strategy.name()).to.be.equal("Strategy 2");

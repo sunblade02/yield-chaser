@@ -46,7 +46,11 @@ contract MockMorphoVault {
     }
 
     function previewDeposit(uint256 assets) public view returns (uint256 shares) {
-        return previewWithdraw(assets);
+        if (totalSupply == 0 || _totalAssets == 0) {
+            return assets;
+        }
+
+        return assets * totalSupply / _totalAssets;
     }
 
     function withdraw(uint256 assets, address receiver, address onBehalf) external returns (uint256) {
@@ -56,7 +60,19 @@ contract MockMorphoVault {
     }
 
     function previewWithdraw(uint256 assets) public view returns (uint256 shares) {
-        return _totalAssets == 0 ? assets : (assets * totalSupply) / _totalAssets;
+        if (totalSupply == 0 || _totalAssets == 0) {
+            return assets;
+        }
+
+        uint grossShares = _totalAssets == 0 ? assets : (assets * totalSupply) / _totalAssets;
+
+        uint capitalPart = grossShares * totalCapital / totalSupply;
+        uint interest = assets > capitalPart ? assets - capitalPart : 0;
+
+        uint managementFeeAmount = (interest * managementFee) / 10**18;
+        uint performanceFeeAmount = (interest * performanceFee) / 10**18;
+
+        return assets - managementFeeAmount - performanceFeeAmount;
     }
 
     function redeem(uint256 shares, address receiver, address onBehalf) external returns (uint256) {
@@ -66,26 +82,32 @@ contract MockMorphoVault {
     }
 
     function previewRedeem(uint256 shares) public view returns (uint256 assets) {
-        return _totalAssets == 0 ? shares : (shares * _totalAssets) / totalSupply;
+        if (totalSupply == 0 || _totalAssets == 0) {
+            return shares;
+        }
+
+        uint grossAssets = _totalAssets == 0 ? shares : (shares * _totalAssets) / totalSupply;
+
+        uint capitalPart = shares * totalCapital / totalSupply;
+        uint interest = grossAssets > capitalPart ? grossAssets - capitalPart : 0;
+
+        uint managementFeeAmount = (interest * managementFee) / 10**18;
+        uint performanceFeeAmount = (interest * performanceFee) / 10**18;
+
+        return grossAssets - managementFeeAmount - performanceFeeAmount;
     }
 
     function exit(uint assets, uint shares, address receiver, address onBehalf) internal {
         require(balanceOf[onBehalf] >= shares, CannotSendShares());
 
         uint capitalPart = shares * totalCapital / totalSupply;
-        uint interest = assets > capitalPart ? assets - capitalPart : 0;
-
-        uint managementFeeAmount = (interest * managementFee) / 10**18;
-        uint performanceFeeAmount = (interest * performanceFee) / 10**18;
-
-        uint netAssets = assets - managementFeeAmount - performanceFeeAmount;
 
         balanceOf[onBehalf] -= shares;
         totalSupply -= shares;
         _totalAssets -= assets;
         totalCapital -= capitalPart;
 
-        bool success = IMockERC20(asset).transfer(receiver, netAssets);
+        bool success = IMockERC20(asset).transfer(receiver, assets); // plus de fees ici
         require(success, TransferReverted());
     }
 

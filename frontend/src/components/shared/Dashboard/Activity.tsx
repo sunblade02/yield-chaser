@@ -28,12 +28,16 @@ const Activity = ({
             },
             {
                 address: accountAddress,
-                event: parseAbiItem("event USDCAllocated(uint amount, address vault)"),
+                event: parseAbiItem("event ETHReceived(address sender, uint amount)"),
             },
             {
                 address: accountAddress,
-                event: parseAbiItem("event ETHReceived(address sender, uint amount)"),
-            }
+                event: parseAbiItem("event USDCDisallocated(uint amount, address vault)"),
+            },
+            {
+                address: accountAddress,
+                event: parseAbiItem("event USDCAllocated(uint amount, address vault)"),
+            },
         ];
 
         let events: EventType[] = [];
@@ -50,11 +54,17 @@ const Activity = ({
                 eventName: log.eventName,
                 transactionHash: log.transactionHash,
                 blockNumber: log.blockNumber,
+                order: i,
                 args: log.args
             })));
         }
 
-        events = events.sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber));
+        events = events.sort((a, b) => {
+            if (a.blockNumber !== b.blockNumber) {
+                return Number(b.blockNumber) - Number(a.blockNumber);
+            }
+            return b.order - a.order;
+        });
 
         setEvents(events);
     };

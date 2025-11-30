@@ -20,10 +20,13 @@ const Vault = ({
         <Card className={clsx("rounded-lg p-4 bg-foreground/2", className)}>
             <CardHeader className="p-0">
                 <CardTitle className="flex gap-2">
-                    <Image width="45" height="0" src="/morpho.png" alt="Morpho" className="rounded-full" />
+                    <div>
+                        <Image width="45" height="0" src="/morpho.png" alt="Morpho" className="rounded-full" />
+                    </div>
                     <div className="flex justify-between w-full">
                         <div>
-                            <h3>{vault.name} <a className="text-main" href={explorerAddressURI + vault.address} target="_blank">{formatAddress(vault.address as `0x${string}`)} <ExternalLink size={14} className="inline -mt-1" /></a></h3>
+                            <h3>{vault.name}</h3>
+                            <a className="text-main" href={explorerAddressURI + vault.address} target="_blank">{formatAddress(vault.address as `0x${string}`)} <ExternalLink size={14} className="inline -mt-1" /></a>
                             <div className="flex gap-4 text-sm text-muted-foreground font-normal">
                                 <div>APY: {readableNumber(vault.netAPY, 4)}%</div>
                                 <div>TVL: ${readableNumber(vault.tvl, 6)}</div>

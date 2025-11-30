@@ -47,6 +47,8 @@ const Dashboard = ({
         }
     };
 
+    const totalUsdc = account.capitalUsdc + account.earnedUsdc;
+
     return (
         <>
             {(accountIsLoading || strategyIsLoading) && isConnected ?
@@ -65,28 +67,50 @@ const Dashboard = ({
                             </ButtonGroup>
                         }
 
-                        <div className="md:flex justify-between md:gap-6 mb-16">
+                        <div className="md:flex justify-between md:gap-6 mb-6">
                             <Card className="w-full mb-6 md:mb-0 rounded-lg p-8">
                                 <CardHeader className="p-0">
                                     <CardDescription>
-                                        USDC
+                                        Capital
                                     </CardDescription>
                                     <div className="mt-2 text-3xl font-medium text-right">
-                                        {readableNumber(account.usdc, 6)} <TokenUSDC variant="mono" size={40} className="inline -mt-1" />
+                                        <span title={readableNumber(account.capitalUsdc, 6)}>{readableNumber(account.capitalUsdc, 6, 2)}</span> <TokenUSDC variant="mono" size={40} className="inline -mt-1" />
                                     </div>
                                 </CardHeader>
                             </Card>
+                            <Card className="w-full mb-6 md:mb-0 rounded-lg p-8">
+                                <CardHeader className="p-0">
+                                    <CardDescription>
+                                        Net earnings
+                                    </CardDescription>
+                                    <div className="mt-2 text-3xl font-medium text-right">
+                                        <span title={readableNumber(account.earnedUsdc, 6)}>+ {readableNumber(account.earnedUsdc, 6, 2)}</span> <TokenUSDC variant="mono" size={40} className="inline -mt-1" />
+                                    </div>
+                                </CardHeader>
+                            </Card>
+                            <Card className="w-full mb-6 md:mb-0 rounded-lg p-8">
+                                <CardHeader className="p-0">
+                                    <CardDescription>
+                                        Total
+                                    </CardDescription>
+                                    <div className="mt-2 text-3xl font-medium text-right">
+                                        <span title={readableNumber(totalUsdc, 6)}>{readableNumber(totalUsdc, 6, 2)}</span> <TokenUSDC variant="mono" size={40} className="inline -mt-1" />
+                                    </div>
+                                </CardHeader>
+                            </Card>
+                        </div>
+                        <div className="md:flex justify-between md:gap-6 mb-16">
                             <Card className="w-full mb-6 md:mb-0 rounded-lg p-8">
                                 <CardHeader className="p-0">
                                     <CardDescription>
                                         ETH
                                     </CardDescription>
                                     <div className="mt-2 text-3xl font-medium text-right">
-                                        {readableNumber(account.eth, 18)} <TokenETH variant="mono" size={40} className="inline -mt-1" />
+                                        <span title={readableNumber(account.eth, 18)}>{readableNumber(account.eth, 18, 9)}</span> <TokenETH variant="mono" size={40} className="inline -mt-1" />
                                     </div>
                                 </CardHeader>
                             </Card>
-                            <Card className="w-full rounded-lg p-8">
+                            <Card className="w-full mb-6 md:mb-0 rounded-lg p-8">
                                 <CardHeader className="p-0">
                                     <CardDescription>
                                         YCT
@@ -107,11 +131,11 @@ const Dashboard = ({
                                     <CardDescription className="flex gap-8 text-muted-foreground text-xs">
                                         <div>
                                             Net APY<br />
-                                            <span className="text-lg font-medium text-foreground">{currentVaultIndex ? readableNumber(strategy.vaults[currentVaultIndex]?.netAPY, 4) : 0}%</span>
+                                            <span className="text-lg font-medium text-foreground">{typeof currentVaultIndex === "number" ? readableNumber(strategy.vaults[currentVaultIndex]?.netAPY, 4) : 0}%</span>
                                         </div>
                                         <div>
                                             TVL<br />
-                                            <span className="text-lg font-medium text-foreground">${currentVaultIndex ? readableNumber(strategy.vaults[currentVaultIndex]?.tvl, 6) : 0}</span>
+                                            <span className="text-lg font-medium text-foreground">${typeof currentVaultIndex === "number" ? readableNumber(strategy.vaults[currentVaultIndex]?.tvl, 6) : 0}</span>
                                         </div>
                                     </CardDescription>
                                 </CardHeader>

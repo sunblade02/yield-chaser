@@ -8,5 +8,5 @@ import { IYcStrategy } from "./IYcStrategy.sol";
 /// @title Yield Chaser factory interface
 /// @author Jérémie Riquier
 interface IYcFactory {
-    function createAccount(ERC20 _usdc, IYcStrategy _strategy, address _owner) external returns(IYcAccount);
+    function createAccount(ERC20 _usdc, IYcStrategy _strategy, address _owner, uint32 _noReallocationPeriod) external returns(IYcAccount);
 }

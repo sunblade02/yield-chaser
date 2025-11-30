@@ -29,6 +29,15 @@ const Event = ({
                 </>
             );
             break;
+        case "USDCDisallocated":
+            title = "Disallocation";
+            description = readableNumber((event.args  as any).amount, 6) + " USDC disallocated form vault " + formatAddress((event.args  as any).vault);
+            description = (
+                <>
+                    {readableNumber((event.args  as any).amount, 6)} USDC allocated to vault <a className="text-main" href={explorerAddressURI + (event.args  as any).vault} target="_blank">{formatAddress((event.args  as any).vault)} <ExternalLink size={14} className="inline -mt-1" /></a>
+                </>
+            );
+            break;
         case "ETHReceived":
             title = "Receiving ETH";
             description = (
