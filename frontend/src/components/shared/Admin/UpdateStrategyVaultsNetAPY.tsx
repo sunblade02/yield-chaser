@@ -14,14 +14,14 @@ const UpdateStrategyVaultsNetAPY = ({
 } : {
     strategy: StrategyType  
 }) => {
-    const [ netAPYs, setNetAPYs ] = useState<any[]>([]);
+    const [ netAPYs, setNetAPYs ] = useState<number[]>([]);
     const [ showSuccess, setShowSuccess ] = useState(false);
 
     useEffect(() => {
-        const netAPYs: any[] = [];
+        const netAPYs: number[] = [];
 
         strategy.vaults.map((vault, index) => {
-            netAPYs[index] = vault.netAPY;
+            netAPYs[index] = vault.netAPY ? vault.netAPY : 0;
         });
         
         setNetAPYs(netAPYs);

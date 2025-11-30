@@ -4,6 +4,8 @@ import UpdateStrategyVaultsNetAPY from "./Admin/UpdateStrategyVaultsNetAPY";
 import { useGetStrategy } from "@/hooks/strategy/useGetStrategy";
 import { useGetAccount } from "@/hooks/account/useGetAccount";
 import SetNoReallocationPeriod from "./Admin/SetNoReallocationPeriod";
+import Reallocate from "./Admin/Reallocate";
+import IncAssets from "./Admin/IncAssets";
 
 const Admin = () => {
     const { address } = useAccount();
@@ -51,8 +53,9 @@ const Admin = () => {
             {accountAddress &&
                 <>
                     <h2 className="mb-6">Account</h2>
-                    <div className="flex">
+                    <div className="flex gap-4">
                         <SetNoReallocationPeriod account={account} />
+                        <Reallocate account={account} />
                     </div>
                 </>
             }
@@ -64,6 +67,10 @@ const Admin = () => {
                     </div>
                 </>
             }
+            <h1 className="mb-6">Simulation</h1>
+            <div className="flex">
+                <IncAssets strategy={strategy} />
+            </div>
         </>
     )
 }

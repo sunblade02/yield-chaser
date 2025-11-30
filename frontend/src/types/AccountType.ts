@@ -3,7 +3,8 @@ import { VaultType } from "./VaultType";
 
 export interface AccountType {
     address: `0x${string}`|null,
-    usdc: number,
+    capitalUsdc: number,
+    earnedUsdc: number,
     eth: number,
     yct: number,
     noReallocationPeriod: number,

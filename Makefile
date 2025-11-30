@@ -13,7 +13,7 @@ run-frontend:
 run-hardhat-node:
 	docker exec -w /app/backend -e TERM=xterm-256color -ti yield-chaser-dev npx hardhat node
 
-deploy-contracts-localhost:
+deploy-localhost:
 	docker exec -w /app/backend -e TERM=xterm-256color -ti yield-chaser-dev npx hardhat run scripts/localhost/deploy.ts
 
 test:

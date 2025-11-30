@@ -2,6 +2,11 @@ export const contractABI = [
     {
       "inputs": [
         {
+          "internalType": "contract YcRegistry",
+          "name": "_registry",
+          "type": "address"
+        },
+        {
           "internalType": "contract ERC20",
           "name": "_usdc",
           "type": "address"
@@ -15,10 +20,20 @@ export const contractABI = [
           "internalType": "address",
           "name": "_owner",
           "type": "address"
+        },
+        {
+          "internalType": "uint32",
+          "name": "_noReallocationPeriod",
+          "type": "uint32"
         }
       ],
       "stateMutability": "nonpayable",
       "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "NoReallocationNecessary",
+      "type": "error"
     },
     {
       "inputs": [],
@@ -28,6 +43,16 @@ export const contractABI = [
     {
       "inputs": [],
       "name": "NoVault",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NoVaultChange",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotEnoughETH",
       "type": "error"
     },
     {
@@ -50,6 +75,11 @@ export const contractABI = [
         }
       ],
       "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "WithinNoReallocationPeriod",
       "type": "error"
     },
     {
@@ -129,6 +159,25 @@ export const contractABI = [
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "contract IVaultV2",
+          "name": "vault",
+          "type": "address"
+        }
+      ],
+      "name": "USDCDisallocated",
+      "type": "event"
+    },
+    {
       "inputs": [],
       "name": "allocate",
       "outputs": [],
@@ -137,12 +186,30 @@ export const contractABI = [
     },
     {
       "inputs": [],
+      "name": "capital",
+      "outputs": [
+        {
+          "internalType": "uint128",
+          "name": "",
+          "type": "uint128"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "checkReallocation",
       "outputs": [
         {
-          "internalType": "bool",
+          "internalType": "contract IVaultV2",
           "name": "",
-          "type": "bool"
+          "type": "address"
+        },
+        {
+          "internalType": "uint128",
+          "name": "",
+          "type": "uint128"
         }
       ],
       "stateMutability": "view",
@@ -156,6 +223,19 @@ export const contractABI = [
           "internalType": "contract IVaultV2",
           "name": "",
           "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "depositAmount",
+      "outputs": [
+        {
+          "internalType": "uint128",
+          "name": "",
+          "type": "uint128"
         }
       ],
       "stateMutability": "view",
@@ -193,6 +273,26 @@ export const contractABI = [
       "outputs": [
         {
           "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "reallocate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "registry",
+      "outputs": [
+        {
+          "internalType": "contract YcRegistry",
           "name": "",
           "type": "address"
         }

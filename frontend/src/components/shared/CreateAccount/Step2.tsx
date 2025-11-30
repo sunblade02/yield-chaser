@@ -123,11 +123,11 @@ const Step2 = ({
                     <CardDescription className="flex gap-4">
                         <div>
                             Net APY<br />
-                            <span className="text-3xl font-weight-medium text-foreground">{strategy.bestVaultIndex ? readableNumber(strategy.vaults[strategy.bestVaultIndex].netAPY, 4) : 0}%</span>
+                            <span className="text-3xl font-weight-medium text-foreground">{typeof strategy.bestVaultIndex === "number" ? readableNumber(strategy.vaults[strategy.bestVaultIndex].netAPY, 4) : 0}%</span>
                         </div>
                         <div>
                             TVL<br />
-                            <span className="text-3xl font-weight-medium text-foreground">${strategy.bestVaultIndex ? readableNumber(strategy.vaults[strategy.bestVaultIndex].tvl, 6) : 0}</span>
+                            <span className="text-3xl font-weight-medium text-foreground">${typeof strategy.bestVaultIndex === "number" ? readableNumber(strategy.vaults[strategy.bestVaultIndex].tvl, 6) : 0}</span>
                         </div>
                     </CardDescription>
                 </CardHeader>

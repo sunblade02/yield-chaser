@@ -19,7 +19,7 @@ export default function HomePage() {
                 <Card className="w-full mb-6 md:mb-0 rounded-lg p-8">
                     <CardHeader className="p-0">
                         <CardTitle>
-                            <div className="card-icon w-10 h-10 rounded-lg flex items-center justify-center mb-6 text-main bg-main">
+                            <div className="card-icon w-10 h-10 rounded-lg flex items-center justify-center mb-6 text-main bg-main-foreground">
                                 <Shield />
                             </div>
                             <h2>Full control of your funds</h2>
@@ -32,7 +32,7 @@ export default function HomePage() {
                 <Card className="w-full mb-6 md:mb-0 rounded-lg p-8">
                     <CardHeader className="p-0">
                         <CardTitle>
-                            <div className="card-icon w-10 h-10 rounded-lg flex items-center justify-center mb-6 text-main bg-main">
+                            <div className="card-icon w-10 h-10 rounded-lg flex items-center justify-center mb-6 text-main bg-main-foreground">
                                 <Zap />
                             </div>
                             <h2>Smart exposure</h2>
@@ -45,7 +45,7 @@ export default function HomePage() {
                 <Card className="w-full rounded-lg p-8">
                     <CardHeader className="p-0">
                         <CardTitle>
-                            <div className="card-icon w-10 h-10 rounded-lg flex items-center justify-center mb-6 text-main bg-main">
+                            <div className="card-icon w-10 h-10 rounded-lg flex items-center justify-center mb-6 text-main bg-main-foreground">
                                 <TrendingUp />
                             </div>
                             <h2>Active yield optimization</h2>

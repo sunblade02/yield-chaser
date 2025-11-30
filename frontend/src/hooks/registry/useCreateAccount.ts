@@ -10,7 +10,7 @@ export const useCreateAccount = (strategy: `0x${string}`, usdcAmount: number, et
             address: contractAddress,
             abi: contractABI,
             functionName: "createAccount",
-            args: [strategy, usdcAmount],
+            args: [strategy, usdcAmount, 86400],
             value: BigInt(ethAmount),
         });
     };

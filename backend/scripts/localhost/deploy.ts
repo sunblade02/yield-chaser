@@ -14,7 +14,9 @@ async function main(): Promise<void> {
         await usdc.faucet(signers[i], 10_000_000_125n);
     }
 
-    const registry = await ethers.deployContract("YcRegistry", [ usdc ]);
+    const ethFixedReallocationFee = ethers.parseEther("0.00004");
+    const usdcYieldFeeRate = ethers.parseUnits("5", 3); // 5 %
+    const registry = await ethers.deployContract("YcRegistry", [ usdc, ethFixedReallocationFee, usdcYieldFeeRate ]);
     console.log("Registry was deployed at : " + registry.target);
 
     const factoryAddress = await registry.factory();
@@ -45,7 +47,7 @@ async function main(): Promise<void> {
     console.log("Strategy was added to registry");
 
     await usdc.approve(registry, 1_000_000_000n);
-    await registry.createAccount(strategy, 1_000_000_000n, { 
+    await registry.createAccount(strategy, 1_000_000_000n, 86400n, { 
         value: ethers.parseEther("0.5")
     });
     const account = await registry.accounts(signers[0]);

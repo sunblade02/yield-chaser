@@ -6,6 +6,16 @@ export const contractABI = [
           "internalType": "contract ERC20",
           "name": "_usdc",
           "type": "address"
+        },
+        {
+          "internalType": "uint128",
+          "name": "_ethFixedReallocationFee",
+          "type": "uint128"
+        },
+        {
+          "internalType": "uint16",
+          "name": "_usdcYieldFeeRate",
+          "type": "uint16"
         }
       ],
       "stateMutability": "nonpayable",
@@ -100,6 +110,25 @@ export const contractABI = [
         }
       ],
       "name": "ETHReceived",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint128",
+          "name": "oldEthFixedReallocationFee",
+          "type": "uint128"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint128",
+          "name": "newEthFixedReallocationFee",
+          "type": "uint128"
+        }
+      ],
+      "name": "EthFixedReallocationFeeSet",
       "type": "event"
     },
     {
@@ -210,6 +239,76 @@ export const contractABI = [
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "contract IYcStrategy",
+          "name": "strategy",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "contract IVaultV2",
+          "name": "vault",
+          "type": "address"
+        }
+      ],
+      "name": "StrategyVaultAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint16",
+          "name": "oldUsdcYieldFeeRate",
+          "type": "uint16"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint16",
+          "name": "newUsdcYieldFeeRate",
+          "type": "uint16"
+        }
+      ],
+      "name": "UsdcYieldFeeRateSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "YctMinted",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "ACCOUNT_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "BOT_ROLE",
       "outputs": [
@@ -271,6 +370,24 @@ export const contractABI = [
       "inputs": [
         {
           "internalType": "contract IYcStrategy",
+          "name": "_strategy",
+          "type": "address"
+        },
+        {
+          "internalType": "contract IVaultV2",
+          "name": "_vault",
+          "type": "address"
+        }
+      ],
+      "name": "addStrategyVault",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract IYcStrategy",
           "name": "",
           "type": "address"
         }
@@ -297,6 +414,11 @@ export const contractABI = [
           "internalType": "uint256",
           "name": "_amount",
           "type": "uint256"
+        },
+        {
+          "internalType": "uint32",
+          "name": "_noReallocationPeriod",
+          "type": "uint32"
         }
       ],
       "name": "createAccount",
@@ -308,6 +430,19 @@ export const contractABI = [
         }
       ],
       "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "ethFixedReallocationFee",
+      "outputs": [
+        {
+          "internalType": "uint128",
+          "name": "",
+          "type": "uint128"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -404,6 +539,13 @@ export const contractABI = [
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "mintYct",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "bytes32",
@@ -461,6 +603,32 @@ export const contractABI = [
     {
       "inputs": [
         {
+          "internalType": "uint128",
+          "name": "_ethFixedReallocationFee",
+          "type": "uint128"
+        }
+      ],
+      "name": "setEthFixedReallocationFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint16",
+          "name": "_usdcYieldFeeRate",
+          "type": "uint16"
+        }
+      ],
+      "name": "setUsdcYieldFeeRate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
@@ -509,9 +677,9 @@ export const contractABI = [
           "type": "address[]"
         },
         {
-          "internalType": "uint256[]",
+          "internalType": "uint32[]",
           "name": "_vaultsNetApy",
-          "type": "uint256[]"
+          "type": "uint32[]"
         }
       ],
       "name": "updateStrategyVaultsNetAPY",
@@ -527,6 +695,19 @@ export const contractABI = [
           "internalType": "contract ERC20",
           "name": "",
           "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "usdcYieldFeeRate",
+      "outputs": [
+        {
+          "internalType": "uint16",
+          "name": "",
+          "type": "uint16"
         }
       ],
       "stateMutability": "view",
