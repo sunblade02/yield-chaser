@@ -7,7 +7,7 @@ import { IYcStrategy } from "./IYcStrategy.sol";
 /// @title Yield Chaser account interface
 /// @author Jérémie Riquier
 interface IYcAccount {
-    function allocate() external;
+    function allocate() payable external;
     function reallocate() external;
     function checkReallocation() external view returns (IVaultV2, uint128);
     function setNoReallocationPeriod(uint32 _noReallocationPeriod) external;

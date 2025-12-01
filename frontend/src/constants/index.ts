@@ -5,3 +5,5 @@ export const explorerTxURI = explorerBaseURI + "tx/";
 export const explorerAddressURI = explorerBaseURI + "address/";
 export const approvalGasCost = 50_000;
 export const createAccountGasCost = 1_000_000;
+export const transferGasCost = 21_000;
+export const allocateGasCost = 1_000_000;

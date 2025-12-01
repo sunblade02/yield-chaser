@@ -60,7 +60,9 @@ const Step1 = ({
                     <CardHeader className="p-0">
                         <CardTitle className="flex justify-between">
                             <h2>Balanced Yield</h2>
-                            <Badge variant="secondary" className="rounded-md text-xs">Coming soon</Badge>
+                            <div>
+                                <Badge variant="secondary" className="rounded-md text-xs">Coming soon</Badge>
+                            </div>
                         </CardTitle>
                         <CardDescription>
                             Moderate-risk strategy across multiple protocols.
@@ -89,7 +91,9 @@ const Step1 = ({
                     <CardHeader className="p-0">
                         <CardTitle className="flex justify-between">
                             <h2>Growth Yield</h2>
-                            <Badge variant="secondary" className="rounded-md text-xs">Coming soon</Badge>
+                            <div>
+                                <Badge variant="secondary" className="rounded-md text-xs">Coming soon</Badge>
+                            </div>
                         </CardTitle>
                         <CardDescription>
                             High-risk, high-yield strategy across multiple protocols.

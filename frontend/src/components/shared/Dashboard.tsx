@@ -14,11 +14,14 @@ import { useGetStrategy } from "@/hooks/strategy/useGetStrategy"
 import Vault from "./Strategy/Vault"
 import Activity from "./Dashboard/Activity"
 import { explorerAddressURI } from "@/constants"
+import Link from "next/link"
 
 const Dashboard = ({
-    accountAddress
+    accountAddress,
+    isLoading,
 } : {
     accountAddress?: string
+    isLoading: boolean
 }) => {
     const { isConnected } = useAccount();
     const [ copyDone, setCopyDone ] = useState(false);
@@ -51,7 +54,7 @@ const Dashboard = ({
 
     return (
         <>
-            {(accountIsLoading || strategyIsLoading) && isConnected ?
+            {(isLoading || accountIsLoading || strategyIsLoading) && isConnected ?
                 <Loading title="Loading data..." />
             :
                 <div className="flex flex-cols justify-center">
@@ -64,7 +67,16 @@ const Dashboard = ({
                                     <a href={explorerAddressURI + accountAddress} target="_blank"><ExternalLink /></a>
                                 </Button>
                                 <Button variant="outline" onClick={copyToClipboard}>{copyDone ? <CopyCheck /> : <CopyIcon />}</Button>
+                                <Button asChild>
+                                    <Link href="/deposit">Deposit</Link>
+                                </Button>
                             </ButtonGroup>
+                        }
+
+                        {!accountAddress && isConnected &&
+                            <Button asChild className="mb-6">
+                                <Link href="/create-account">Create an account</Link>
+                            </Button>
                         }
 
                         <div className="md:flex justify-between md:gap-6 mb-6">
@@ -122,7 +134,7 @@ const Dashboard = ({
                             </Card>
                         </div>
                         
-                        { isConnected &&
+                        { accountAddress && isConnected &&
                             <Card className="w-full rounded-lg p-8 mb-16">
                                 <CardHeader className="p-0">
                                     <CardTitle>

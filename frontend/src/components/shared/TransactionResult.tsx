@@ -1,6 +1,7 @@
 import React from "react"
 import { CheckCircle2, CircleX } from "lucide-react"
 import { Button } from "../ui/button"
+import Link from "next/link"
 
 const TransactionResult = ({
     children,
@@ -8,14 +9,16 @@ const TransactionResult = ({
     title,
     description,
     onClick,
-    buttonText
+    buttonText,
+    href
 } : {
     children?: React.ReactNode,
     type: "success" | "error"
     title: string,
     description?: string,
-    onClick: () => void,
+    onClick?: () => void,
     buttonText?: string
+    href?: string
 }) => {
     return (
         <div className="flex items-center justify-center px-20">
@@ -36,7 +39,13 @@ const TransactionResult = ({
                         {children}
                     </div>
                 }
-                <Button className="w-full" onClick={onClick}>{buttonText ?? "Go back"}</Button>
+                {href ?
+                    <Button className="w-full" asChild>
+                        <Link href={href}>{buttonText ?? "Go back"}</Link>
+                    </Button>
+                :
+                    <Button className="w-full" onClick={onClick}>{buttonText ?? "Go back"}</Button>
+                }
             </div>
         </div>
     )

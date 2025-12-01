@@ -5,7 +5,7 @@ import { contractABI, contractAddress } from "@/constants/contracts/registry";
 import { zeroHash } from "viem";
 import { useAccount, useReadContract } from "wagmi"
 
-const DashboardPage = () => {
+const AdminPage = () => {
     const { address } = useAccount();
     const adminRole = zeroHash;
 
@@ -28,4 +28,4 @@ const DashboardPage = () => {
     );
 }
 
-export default DashboardPage
+export default AdminPage

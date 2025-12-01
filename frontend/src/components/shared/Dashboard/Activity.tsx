@@ -8,6 +8,8 @@ import { deploymentBlock } from "@/constants";
 import { useEffect, useState } from "react";
 import Event from "../Event";
 import { EventType } from "@/types/EventType";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const Activity = ({
     accountAddress
@@ -81,17 +83,30 @@ const Activity = ({
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                { isConnected ?
+                { accountAddress && isConnected ?
                     <div className="space-y-6">
                         {events.map(event => <Event key={crypto.randomUUID()} event={event} />)}
                     </div>
                 :
                     <>
                         <div className="text-center text-muted-foreground">
-                            <div className="mb-6">
-                                No activity yet. Connect your wallet to view your simulations, reallocations, and yield events.
-                            </div>
-                            <CustomConnectButton variant="outline" />
+                            {isConnected ?
+                                <>
+                                    <div className="mb-6">
+                                        No activity yet.
+                                    </div>
+                                    <Button asChild variant="outline">
+                                        <Link href="/create-account">Create an account</Link>
+                                    </Button>
+                                </>
+                            :
+                                <>
+                                    <div className="mb-6">
+                                        No activity yet. Connect your wallet to view your simulations, reallocations, and yield events.
+                                    </div>
+                                    <CustomConnectButton variant="outline" />
+                                </>
+                            }
                         </div>
                     </>
                 }

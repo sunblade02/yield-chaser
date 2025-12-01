@@ -8,6 +8,7 @@
 - [User] Create an account
 - [User] View account data
 - [User] View history
+- [User] Deposit USDC and ETH
 - [Authorized bot] Update yield data
 - [Bot] Check if an account need reallocation
 - [Bot] Reallocate tokens of an account
