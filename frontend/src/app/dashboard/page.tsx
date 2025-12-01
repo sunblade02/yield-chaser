@@ -1,34 +1,21 @@
 "use client"
 
-import CreateAccount from "@/components/shared/CreateAccount";
 import Dashboard from "@/components/shared/Dashboard"
-import { contractABI, contractAddress } from "@/constants/contracts/registry";
+import { useAccounts } from "@/hooks/registry/useAccounts";
 import { zeroAddress } from "viem";
-import { useAccount, useReadContract } from "wagmi"
+import { useAccount } from "wagmi"
 
 const DashboardPage = () => {
     const { isConnected, address } = useAccount();
 
-    const { data: accountAddress, refetch: accountRefetch } = useReadContract({
-        address: contractAddress,
-        abi: contractABI,
-        functionName: "accounts",
-        args: [ address ],
-        query: {
-            enabled: !!address
-        }
-    });
+    const { data: accountAddress, isSuccess: accountsIsSuccess, isLoading } = useAccounts(address);
 
     const hasAccount = typeof accountAddress === "string" && accountAddress !== zeroAddress;
 
     return (hasAccount ?
-        <Dashboard accountAddress={accountAddress} />
+        <Dashboard isLoading={isLoading} accountAddress={accountAddress} />
     :
-        (!isConnected ?
-            <Dashboard />
-        :
-            <CreateAccount accountRefetch={accountRefetch} />
-        )
+        <Dashboard isLoading={isLoading} />
     );
 }
 

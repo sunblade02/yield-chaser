@@ -5,7 +5,7 @@ export const useUpdateStrategyVaultsNetAPY = () => {
     const {data: hash, isPending, error, writeContract} = useWriteContract({});
     const { isLoading, isSuccess } = useWaitForTransactionReceipt({ hash });
 
-    const updateStrategyVaultsNetAPY = async (strategy: `0x${string}`, vaults: string[], netAPYs: number[]) => {
+    const updateStrategyVaultsNetAPY = (strategy: `0x${string}`, vaults: string[], netAPYs: number[]) => {
         writeContract({
             address: contractAddress,
             abi: contractABI,

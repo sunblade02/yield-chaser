@@ -5,7 +5,7 @@ export const useCreateAccount = (strategy: `0x${string}`, usdcAmount: number, et
     const {data: hash, isPending, error, writeContract} = useWriteContract({});
     const { isLoading, isSuccess } = useWaitForTransactionReceipt({ hash });
 
-    const createAccount = async () => {
+    const createAccount = () => {
         writeContract({
             address: contractAddress,
             abi: contractABI,

@@ -58,11 +58,11 @@ contract YcAccount is IYcAccount, Ownable {
     }
 
     /// @notice Allocates USDC to the highest performing yield vault according to the strategy.
-    function allocate() public {
+    function allocate() payable public {
         uint amount = usdc.balanceOf(address(this));
         require(amount > 0, NoUSDC());
 
-        capital = uint128(amount);
+        capital += uint128(amount);
         depositAmount += uint128(amount);
 
         // first allocation
@@ -77,6 +77,10 @@ contract YcAccount is IYcAccount, Ownable {
         currentVault.deposit(amount, address(this));
 
         emit USDCAllocated(amount, currentVault);
+
+        if (msg.value > 0) {
+            emit ETHReceived(msg.sender, msg.value);
+        }
     }
 
     /// @notice Reallocates USDC to the highest performing yield vault according to the strategy.
@@ -120,6 +124,8 @@ contract YcAccount is IYcAccount, Ownable {
                 }
             }
         }
+
+        delete capital;
 
         allocate();
 

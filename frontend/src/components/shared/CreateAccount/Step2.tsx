@@ -1,17 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
-import { contractABI as usdcContractABI, contractAddress as usdcContractAddress } from "@/constants/contracts/usdc";
-import { useAccount, useBalance, useGasPrice, useReadContract } from "wagmi"
-import {
-    TokenUSDC,
-    TokenETH,
-} from '@web3icons/react'
-import { Info } from "lucide-react";
 import { approvalGasCost, createAccountGasCost } from "@/constants";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StrategyType } from "@/types/StrategyType";
 import Vault from "../Strategy/Vault";
 import { readableNumber } from "@/utils";
+import { useGetBalances } from "@/hooks/user/useGetBalances";
+import { useGasPrice } from "wagmi";
+import DepositForm from "../DepositForm";
 
 const Step2 = ({
     setStep,
@@ -23,95 +18,30 @@ const Step2 = ({
 } : {
     setStep: (step: number) => void,
     strategy: StrategyType,
-    usdcAmount: number|null,
-    setUsdcAmount: (usdcAmount: number|null) => void,
-    ethAmount: number|null,
-    setEthAmount: (ethAmount: number|null) => void
+    usdcAmount: number,
+    setUsdcAmount: (usdcAmount: number) => void,
+    ethAmount: number,
+    setEthAmount: (ethAmount: number) => void
 }) => {
-    const { address } = useAccount();
+    const { usdcBalance, eth, isSuccess: getBalancesIsSuccess } = useGetBalances();
 
     const { data: gasPrice, isSuccess: gasPriceIsSuccess } = useGasPrice();
 
-    const { data: usdcBalance, isSuccess: usdcBalanceIsSuccess } = useReadContract({
-        address: usdcContractAddress,
-        abi: usdcContractABI,
-        functionName: "balanceOf",
-        args: [ address ]
-    });
-
-    const { data: eth, isSuccess: ethIsSuccess } = useBalance({
-        address,
-    });
-
-    const setMaxUsdc = () => {
-        if (usdcBalanceIsSuccess) {
-            setUsdcAmount(Number(usdcBalance));
-        }
-    };
-
-    const setUsdc = (usdc: string) => {
-        let amount = Number(usdc) * 10**6;
-        if (amount < 0) {
-            amount = 0;
-        } else if (amount > Number(usdcBalance) ) {
-            amount = Number(usdcBalance);
-        }
-
-        setUsdcAmount(amount);
-    };
-
-    let maxEth = 0;
-    if (ethIsSuccess) {
-        maxEth = eth.value ? Number(eth.value) : 0;
-        if (gasPriceIsSuccess) {
-            maxEth -= (approvalGasCost + createAccountGasCost) * Number(gasPrice);
-        }
+    let gasCosts = 0;
+    if (gasPriceIsSuccess) {
+        gasCosts = (approvalGasCost + createAccountGasCost) * Number(gasPrice);
     }
-
-    const setMaxEth = () => {
-        if (ethIsSuccess) {
-            setEthAmount(maxEth);
-        }
-    };
-
-    const setEth = (eth: string) => {
-        let amount = Number(eth) * 10**18;
-        if (amount < 0) {
-            amount = 0;
-        } else if (ethIsSuccess && amount > maxEth) {
-            amount = maxEth;
-        }
-
-        setEthAmount(amount);
-    };
 
     return (
         <div className="max-w-[600px] mx-auto">
-            <h2 className="mb-6">Deposit</h2>
-
-            <div className="mb-4 text-muted-foreground">Balance USDC: {readableNumber(usdcBalance, 6)} <TokenUSDC size={24} variant="mono" className="inline -mt-1" /></div>
-            <div className="flex gap-2 mb-6">
-                <InputGroup>
-                    <InputGroupInput placeholder="0.0" type="number" min="0" max={usdcBalanceIsSuccess ? Number(usdcBalance) / 10**6 : 0} className="text-end" onChange={e => setUsdc(e.target.value)} value={usdcAmount || usdcAmount === 0 ? usdcAmount / 10**6 : ""} />
-                    <InputGroupAddon align="inline-end">
-                        <InputGroupText className="w-[40px]">USDC</InputGroupText>
-                    </InputGroupAddon>
-                </InputGroup>
-                <Button variant="outline" disabled={!usdcBalanceIsSuccess} onClick={setMaxUsdc}>Max</Button>
-            </div>
-            <div className="mb-4 text-muted-foreground">Balance ETH: {readableNumber(eth?.value, 18)} <TokenETH size={24} variant="mono" className="inline -mt-1" /></div>
-            <div className="flex gap-2 mb-1">
-                <InputGroup>
-                    <InputGroupInput placeholder="0.0" type="number" min="0" max={ethIsSuccess ? Number(eth.value) / 10**18 : 0} className="text-end" onChange={e => setEth(e.target.value)} value={ethAmount || ethAmount === 0 ? ethAmount  / 10**18 : ""} />
-                    <InputGroupAddon align="inline-end" >
-                        <InputGroupText className="w-[40px]">ETH</InputGroupText>
-                    </InputGroupAddon>
-                </InputGroup>
-                <Button variant="outline" disabled={!ethIsSuccess} onClick={setMaxEth}>Max</Button>
-            </div>
-            <div className="text-muted-foreground flex text-sm mb-8">
-                <Info size={18} className="mt-[2px] mr-1" /> The agent requires a recurring ETH deposit to operate.
-            </div>
+            <DepositForm usdcBalance={Number(usdcBalance ?? 0)}
+                ethBalance={Number(eth?.value ?? 0)}
+                gasCosts={gasCosts}
+                disabled={!getBalancesIsSuccess}
+                usdcAmount={usdcAmount}
+                setUsdcAmount={setUsdcAmount}
+                ethAmount={ethAmount}
+                setEthAmount={setEthAmount} />
             <Button className="w-full mb-2" disabled={usdcAmount === null || ethAmount === null} onClick={() => setStep(3)}>Preview deposit</Button>
             <Button className="w-full mb-8" variant="outline" onClick={() => setStep(1)}>Cancel</Button>
 

@@ -18,14 +18,12 @@ const Step3 = ({
     setStep,
     strategy,
     usdcAmount,
-    ethAmount,
-    accountRefetch
+    ethAmount
 } : {
     setStep: (step: number) => void,
     strategy: StrategyType,
-    usdcAmount: number|null,
-    ethAmount: number|null,
-    accountRefetch: () => void
+    usdcAmount: number,
+    ethAmount: number
 }) => {
     const { address: userAddress } = useAccount();
     const [ transactionResult, setTransactionResult ] = useState<React.ReactNode|null>(null);
@@ -47,7 +45,7 @@ const Step3 = ({
     let appovalStep = true;
     if (gasPriceIsSuccess && allowanceIsSuccess) {
         let totalGasCost = createAccountGasCost;
-        if (Number(allowanceData) < Number(usdcAmount)) {
+        if (Number(allowanceData) < usdcAmount) {
             totalGasCost += approvalGasCost;
         } else {
             appovalStep = false;
@@ -55,15 +53,15 @@ const Step3 = ({
         estimatedTransactionsCost = readableNumber(totalGasCost * Number(gasPrice), 18);
     }
 
-    const { error: approveError, isLoading: approveIsLoading, isSuccess: approveIsSuccess, approve } = useApprove(registryContractAddress, Number(usdcAmount));
+    const { error: approveError, isLoading: approveIsLoading, isSuccess: approveIsSuccess, approve } = useApprove(registryContractAddress, usdcAmount);
 
     const doApprove = () => {
         approve();
     };
 
-    const { error: createAccountError, isLoading: createAccountIsLoading, isSuccess: createAccountIsSuccess, createAccount } = useCreateAccount(strategy.address as `0x${string}`, Number(usdcAmount), Number(ethAmount));
+    const { error: createAccountError, isLoading: createAccountIsLoading, isSuccess: createAccountIsSuccess, createAccount } = useCreateAccount(strategy.address as `0x${string}`, usdcAmount, ethAmount);
 
-    const doCreateAccount = async () => {
+    const doCreateAccount = () => {
         createAccount();
     };
 
@@ -71,7 +69,7 @@ const Step3 = ({
     let bestVaultName = "";
     if (strategy.bestVaultIndex) {
         bestVaultName = strategy.vaults[strategy.bestVaultIndex].name as string;
-        const netBenefit = (Number(usdcAmount) / 10**6) * Number(strategy.vaults[strategy.bestVaultIndex].netAPY) / 10**4 * 0.01;
+        const netBenefit = (usdcAmount / 10**6) * Number(strategy.vaults[strategy.bestVaultIndex].netAPY) / 10**4 * 0.01;
         readableNetBenefit = readableNumber(netBenefit, 2);
     }
 
@@ -102,7 +100,7 @@ const Step3 = ({
 
     useEffect(() => {
         if (createAccountIsSuccess) {
-            setTransactionResult(<TransactionResult type="success" title="Account creation successful" buttonText="Go to dashboard" onClick={accountRefetch} />);
+            setTransactionResult(<TransactionResult type="success" title="Account creation successful" buttonText="Go to dashboard" href="/dashboard" />);
         }
     }, [createAccountIsSuccess]);
 
@@ -184,7 +182,7 @@ const Step3 = ({
                                 Yield Chaser only acts when net benefit is positive.
                             </div>
 
-                            {usdcAmount !== null && Number(usdcAmount) > 0 && <Button className="w-full mb-2" onClick={doApprove} disabled={!appovalStep}>Approve{appovalStep ? ` ${readableNumber(usdcAmount, 6)} USDC for transfer` : ""}</Button>}
+                            {usdcAmount !== null && usdcAmount > 0 && <Button className="w-full mb-2" onClick={doApprove} disabled={!appovalStep}>Approve{appovalStep ? ` ${readableNumber(usdcAmount, 6)} USDC for transfer` : ""}</Button>}
                             <Button disabled={appovalStep} className="w-full mb-2" onClick={doCreateAccount}>Create account</Button>
                             <Button className="w-full" variant="outline" onClick={() => setStep(2)}>Cancel</Button>
                         </div>

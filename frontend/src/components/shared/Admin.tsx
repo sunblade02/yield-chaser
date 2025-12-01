@@ -26,7 +26,7 @@ const Admin = () => {
         }
     });
 
-    const { data: accountAddress, refetch: accountRefetch } = useReadContract({
+    const { data: accountAddress } = useReadContract({
         address: contractAddress,
         abi: contractABI,
         functionName: "accounts",
