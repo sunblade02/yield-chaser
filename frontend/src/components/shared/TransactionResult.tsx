@@ -10,7 +10,8 @@ const TransactionResult = ({
     description,
     onClick,
     buttonText,
-    href
+    href,
+    forceRerender
 } : {
     children?: React.ReactNode,
     type: "success" | "error"
@@ -19,6 +20,7 @@ const TransactionResult = ({
     onClick?: () => void,
     buttonText?: string
     href?: string
+    forceRerender?: boolean
 }) => {
     return (
         <div className="flex items-center justify-center px-20">
@@ -41,7 +43,11 @@ const TransactionResult = ({
                 }
                 {href ?
                     <Button className="w-full" asChild>
-                        <Link href={href}>{buttonText ?? "Go back"}</Link>
+                        {forceRerender ?
+                            <a href={href}>{buttonText ?? "Go back"}</a>
+                        :
+                            <Link href={href}>{buttonText ?? "Go back"}</Link>
+                        }
                     </Button>
                 :
                     <Button className="w-full" onClick={onClick}>{buttonText ?? "Go back"}</Button>

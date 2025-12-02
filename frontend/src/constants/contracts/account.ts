@@ -79,6 +79,16 @@ export const contractABI = [
     },
     {
       "inputs": [],
+      "name": "ReallocationAlreadyDisabled",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ReallocationAlreadyEnabled",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "WithinNoReallocationPeriod",
       "type": "error"
     },
@@ -141,6 +151,18 @@ export const contractABI = [
     },
     {
       "anonymous": false,
+      "inputs": [],
+      "name": "ReallocationDisabled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "ReallocationEnabled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
       "inputs": [
         {
           "indexed": false,
@@ -181,7 +203,7 @@ export const contractABI = [
       "inputs": [],
       "name": "allocate",
       "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -189,9 +211,9 @@ export const contractABI = [
       "name": "capital",
       "outputs": [
         {
-          "internalType": "uint128",
+          "internalType": "uint64",
           "name": "",
-          "type": "uint128"
+          "type": "uint64"
         }
       ],
       "stateMutability": "view",
@@ -233,9 +255,36 @@ export const contractABI = [
       "name": "depositAmount",
       "outputs": [
         {
-          "internalType": "uint128",
+          "internalType": "uint64",
           "name": "",
-          "type": "uint128"
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "disableReallocation",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "enableReallocation",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "isReallocationEnabled",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
         }
       ],
       "stateMutability": "view",

@@ -7,8 +7,5 @@ export const useAccounts = (address: any) => {
         abi: contractABI,
         functionName: "accounts",
         args: [ address ],
-        query: {
-            enabled: !!address
-        }
     });
 };

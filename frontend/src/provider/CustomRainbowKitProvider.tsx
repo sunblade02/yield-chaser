@@ -29,16 +29,14 @@ const config = getDefaultConfig({
 
 const queryClient = new QueryClient();
 const CustomRainbowKitProvider = ({children}: {children: ReactNode}) => {
-    const { theme, systemTheme } = useTheme();
-    const [ mounted, setMounted ] = useState(false);
+    const { resolvedTheme } = useTheme();
+    const [ theme, setTheme ] = useState("system");
 
-    useEffect(() => setMounted(true), []);
-
-    if (!mounted) {
-        return null;
-    }
-
-    const effectiveTheme = theme === "system" ? systemTheme ?? "light" : theme;
+    useEffect(() => {
+        if (resolvedTheme) {
+            setTheme(resolvedTheme);
+        }
+    }, [resolvedTheme]);
 
     return (
         <WagmiProvider config={config}>
@@ -47,7 +45,7 @@ const CustomRainbowKitProvider = ({children}: {children: ReactNode}) => {
                     locale="en"
                     avatar={CustomAvatar}
                     modalSize="compact"
-                    theme={effectiveTheme === 'dark' ? darkTheme({
+                    theme={theme === 'dark' ? darkTheme({
                         borderRadius: 'small',
                         fontStack: 'system',
                     }) : lightTheme({

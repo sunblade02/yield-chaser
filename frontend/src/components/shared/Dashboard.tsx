@@ -6,7 +6,7 @@ import { useAccount } from "wagmi"
 import { CopyCheck, CopyIcon, ExternalLink, Wallet } from "lucide-react"
 import { ButtonGroup, ButtonGroupText } from "../ui/button-group"
 import { Button } from "../ui/button"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { TokenETH, TokenUSDC } from "@web3icons/react"
 import { useGetAccount } from "@/hooks/account/useGetAccount"
 import Loading from "./Loading"
@@ -23,6 +23,8 @@ const Dashboard = ({
     accountAddress?: string
     isLoading: boolean
 }) => {
+    const [mounted, setMounted] = useState(false);
+
     const { isConnected } = useAccount();
     const [ copyDone, setCopyDone ] = useState(false);
 
@@ -51,6 +53,12 @@ const Dashboard = ({
     };
 
     const totalUsdc = account.capitalUsdc + account.earnedUsdc;
+
+    useEffect(() => setMounted(true), []);
+
+    if (!mounted) {
+        return null;
+    }
 
     return (
         <>

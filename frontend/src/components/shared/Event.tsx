@@ -46,6 +46,22 @@ const Event = ({
                 </>
             );
             break;
+        case "ReallocationEnabled":
+            title = "Enabling agent activity";
+            description = (
+                <>
+                    Agent activity enabled
+                </>
+            );
+            break;
+        case "ReallocationDisabled":
+            title = "Disabling agent activity";
+            description = (
+                <>
+                    Agent activity disabled
+                </>
+            );
+            break;
     }
 
     return (
