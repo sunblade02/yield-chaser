@@ -81,6 +81,68 @@ let usdcYieldFeeRate: any;
 
 describe("YcAccount", () => {
 
+    describe("disableReallocation", () => {
+
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, strategy, account } = await setupWithoutVault());
+        });
+
+        it("Should disable reallocation", async function () {
+            expect(await account.isReallocationEnabled()).to.be.equal(true);
+
+            await account.disableReallocation();
+
+            expect(await account.isReallocationEnabled()).to.be.equal(false);
+        });
+
+        it("Should emit a ReallocationDisabled event", async function () {
+            await expect(account.disableReallocation()).to.emit(account, "ReallocationDisabled");
+        });
+
+        it("Only owner could disable reallocation", async function () {
+            await expect(account.connect(user2).disableReallocation()).to.be.revertedWithCustomError(account, "OwnableUnauthorizedAccount");
+        });
+
+        it("Should revert when the reallocation is already disabled", async function () {
+            await account.disableReallocation();
+
+            await expect(account.disableReallocation()).to.be.revertedWithCustomError(account, "ReallocationAlreadyDisabled");
+        });
+    });
+
+    describe("enableReallocation", () => {
+
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, strategy, account } = await setupWithoutVault());
+        });
+
+        it("Should enable reallocation", async function () {
+            await account.disableReallocation();
+
+            expect(await account.isReallocationEnabled()).to.be.equal(false);
+
+            await account.enableReallocation();
+
+            expect(await account.isReallocationEnabled()).to.be.equal(true);
+        });
+
+        it("Should emit a ReallocationEnabled event", async function () {
+            await account.disableReallocation();
+
+            await expect(account.enableReallocation()).to.emit(account, "ReallocationEnabled");
+        });
+
+        it("Only owner could enable reallocation", async function () {
+            await account.disableReallocation();
+
+            await expect(account.connect(user2).enableReallocation()).to.be.revertedWithCustomError(account, "OwnableUnauthorizedAccount");
+        });
+
+        it("Should revert when the reallocation is already enabled", async function () {
+            await expect(account.enableReallocation()).to.be.revertedWithCustomError(account, "ReallocationAlreadyEnabled");
+        });
+    });
+
     describe("setNoReallocationPeriod", () => {
 
         beforeEach(async () => {

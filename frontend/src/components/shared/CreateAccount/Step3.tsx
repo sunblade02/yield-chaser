@@ -100,7 +100,7 @@ const Step3 = ({
 
     useEffect(() => {
         if (createAccountIsSuccess) {
-            setTransactionResult(<TransactionResult type="success" title="Account creation successful" buttonText="Go to dashboard" href="/dashboard" />);
+            setTransactionResult(<TransactionResult type="success" title="Account creation successful" buttonText="Go to dashboard" forceRerender={true} href="/dashboard" />);
         }
     }, [createAccountIsSuccess]);
 

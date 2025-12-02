@@ -23,6 +23,9 @@ contract YcAccount is IYcAccount, Ownable {
     error NotEnoughETH();
     error WithinNoReallocationPeriod();
     error NoVaultChange();
+    error ReallocationAlreadyEnabled();
+    error ReallocationAlreadyDisabled();
+    error ReallocationIsDisabled();
 
     //----- EVENTS -----//
 
@@ -30,6 +33,8 @@ contract YcAccount is IYcAccount, Ownable {
     event USDCDisallocated(uint amount, IVaultV2 vault);
     event ETHReceived(address sender, uint amount);
     event NoReallocationPeriodUpdated(uint32 oldNoReallocationPeriod, uint32 newNoReallocationPeriod);
+    event ReallocationEnabled();
+    event ReallocationDisabled();
 
     //----- STATE VARIABLES -----//
 
@@ -38,9 +43,10 @@ contract YcAccount is IYcAccount, Ownable {
     uint64 public lastReallocation;
     uint32 public noReallocationPeriod;
 
-    // Packing : 128 + 128 = 256
-    uint128 public capital;
-    uint128 public depositAmount;
+    // Packing : 64 + 64 + 1 = 129
+    uint64 public capital;
+    uint64 public depositAmount;
+    bool public isReallocationEnabled;
 
     YcRegistry public registry;
 
@@ -55,6 +61,7 @@ contract YcAccount is IYcAccount, Ownable {
         usdc = _usdc;
         strategy = _strategy;
         noReallocationPeriod = _noReallocationPeriod;
+        isReallocationEnabled = true;
     }
 
     /// @notice Allocates USDC to the highest performing yield vault according to the strategy.
@@ -62,8 +69,8 @@ contract YcAccount is IYcAccount, Ownable {
         uint amount = usdc.balanceOf(address(this));
         require(amount > 0, NoUSDC());
 
-        capital += uint128(amount);
-        depositAmount += uint128(amount);
+        capital += uint64(amount);
+        depositAmount += uint64(amount);
 
         // first allocation
         if (lastReallocation == 0) {
@@ -98,7 +105,7 @@ contract YcAccount is IYcAccount, Ownable {
 
         uint yield;
         uint fee;
-        uint128 delta;
+        uint64 delta;
 
         if (address(disallocationVault) != address(0)) {
             uint shares = disallocationVault.balanceOf(address(this));
@@ -134,7 +141,7 @@ contract YcAccount is IYcAccount, Ownable {
         }
 
         if (yield > 0) {
-            capital -= uint128(yield - fee);
+            capital -= uint64(yield - fee);
         }
 
         registry.mintYct();
@@ -147,6 +154,8 @@ contract YcAccount is IYcAccount, Ownable {
 
     /// @notice Checks for reallocation and returns used data
     function checkReallocation() public view returns (IVaultV2, uint128) {
+        require(isReallocationEnabled, ReallocationIsDisabled());
+
         uint128 ethFixedReallocationFee = registry.ethFixedReallocationFee();
 
         require(address(this).balance >= ethFixedReallocationFee, NotEnoughETH());
@@ -165,6 +174,26 @@ contract YcAccount is IYcAccount, Ownable {
         (noReallocationPeriod, _noReallocationPeriod) = (_noReallocationPeriod, noReallocationPeriod);
 
         emit NoReallocationPeriodUpdated(_noReallocationPeriod, noReallocationPeriod);
+    }
+
+    /// @notice Enable the reallocation
+    /// This function can only be called by the owner.
+    function enableReallocation() external onlyOwner {
+        require(isReallocationEnabled == false, ReallocationAlreadyEnabled());
+        
+        isReallocationEnabled = true;
+
+        emit ReallocationEnabled();
+    }
+
+    /// @notice Disable the reallocation
+    /// This function can only be called by the owner.
+    function disableReallocation() external onlyOwner {
+        require(isReallocationEnabled, ReallocationAlreadyDisabled());
+        
+        delete isReallocationEnabled;
+
+        emit ReallocationDisabled();
     }
 
     receive() payable external {

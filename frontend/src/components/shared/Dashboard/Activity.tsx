@@ -20,14 +20,26 @@ const Activity = ({
     const [ events, setEvents ] = useState<EventType[]>([]);
 
     const getEvents = async() => {
-        const configs = [
-            {
-                address: registryContractAddress,
-                event: parseAbiItem("event AccountCreated(address indexed owner, address strategy, uint usdcAmount, uint ethAmount)"),
-                args: {
-                    owner: address
-                },
+        let events: EventType[] = [];
+
+        const logs = await publicClient.getLogs({
+            address: registryContractAddress,
+            event: parseAbiItem("event AccountCreated(address indexed owner, address strategy, uint usdcAmount, uint ethAmount)"),
+            fromBlock: deploymentBlock,
+            toBlock: 'latest',
+            args: {
+                owner: address
             },
+        });
+        events = events.concat(logs.map(log => ({
+            eventName: log.eventName,
+            transactionHash: log.transactionHash,
+            blockNumber: log.blockNumber,
+            order: 0,
+            args: log.args ?? {}
+        })));
+
+        const configs = [
             {
                 address: accountAddress,
                 event: parseAbiItem("event ETHReceived(address sender, uint amount)"),
@@ -40,9 +52,15 @@ const Activity = ({
                 address: accountAddress,
                 event: parseAbiItem("event USDCAllocated(uint amount, address vault)"),
             },
+            {
+                address: accountAddress,
+                event: parseAbiItem("event ReallocationEnabled()"),
+            },
+            {
+                address: accountAddress,
+                event: parseAbiItem("event ReallocationDisabled()"),
+            },
         ];
-
-        let events: EventType[] = [];
 
         for (let i = 0; i < configs.length; i++) {
             const logs = await publicClient.getLogs({
@@ -50,14 +68,13 @@ const Activity = ({
                 event: configs[i].event,
                 fromBlock: deploymentBlock,
                 toBlock: 'latest',
-                args: configs[i].args ?? {},
             });
             events = events.concat(logs.map(log => ({
                 eventName: log.eventName,
                 transactionHash: log.transactionHash,
                 blockNumber: log.blockNumber,
-                order: i,
-                args: log.args
+                order: i + 1,
+                args: log.args ?? {}
             })));
         }
 

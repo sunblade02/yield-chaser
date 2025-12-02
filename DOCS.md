@@ -10,7 +10,7 @@ IYcAccount : contracts/IYcAccount.sol
 ### allocate
 
 ```solidity
-function allocate() external
+function allocate() external payable
 ```
 
 ### reallocate
@@ -29,6 +29,18 @@ function checkReallocation() external view returns (contract IVaultV2, uint128)
 
 ```solidity
 function setNoReallocationPeriod(uint32 _noReallocationPeriod) external
+```
+
+### enableReallocation
+
+```solidity
+function enableReallocation() external
+```
+
+### disableReallocation
+
+```solidity
+function disableReallocation() external
 ```
 
 ## IYcFactory
@@ -101,7 +113,7 @@ constructor(contract YcRegistry _registry, contract ERC20 _usdc, contract IYcStr
 ### allocate
 
 ```solidity
-function allocate() public
+function allocate() public payable
 ```
 
 Allocates USDC to the highest performing yield vault according to the strategy.
@@ -134,6 +146,24 @@ function setNoReallocationPeriod(uint32 _noReallocationPeriod) external
 ```
 
 Set the no reallocation period in seconds
+This function can only be called by the owner.
+
+### enableReallocation
+
+```solidity
+function enableReallocation() external
+```
+
+Enable the reallocation
+This function can only be called by the owner.
+
+### disableReallocation
+
+```solidity
+function disableReallocation() external
+```
+
+Disable the reallocation
 This function can only be called by the owner.
 
 ### receive
@@ -215,6 +245,18 @@ event ETHReceived(address sender, uint256 amount)
 
 ```solidity
 event NoReallocationPeriodUpdated(uint32 oldNoReallocationPeriod, uint32 newNoReallocationPeriod)
+```
+
+### ReallocationEnabled
+
+```solidity
+event ReallocationEnabled()
+```
+
+### ReallocationDisabled
+
+```solidity
+event ReallocationDisabled()
 ```
 
 inherits Ownable:

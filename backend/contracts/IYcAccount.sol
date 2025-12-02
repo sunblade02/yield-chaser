@@ -11,4 +11,6 @@ interface IYcAccount {
     function reallocate() external;
     function checkReallocation() external view returns (IVaultV2, uint128);
     function setNoReallocationPeriod(uint32 _noReallocationPeriod) external;
+    function enableReallocation() external;
+    function disableReallocation() external;
 }
