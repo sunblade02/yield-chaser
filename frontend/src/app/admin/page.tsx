@@ -1,6 +1,6 @@
 "use client"
 
-import Admin from "@/components/shared/Admin";
+import Admin from "@/components/shared/admin";
 import { contractABI, contractAddress } from "@/constants/contracts/registry";
 import { zeroHash } from "viem";
 import { useAccount, useReadContract } from "wagmi"

@@ -54,7 +54,7 @@ describe("MockMorphoVault", function () {
             ({ usdc, user1, user2, vault } = await setup());
         });
 
-        it("Should transfer USDC when calling the deposit() function", async function () {
+        it("Should transfer USDC when calling the deposit() function", async () => {
             expect(await usdc.balanceOf(user1.address)).to.equal(ethers.parseUnits("1000", 6));
             expect(await usdc.balanceOf(vault.getAddress())).to.equal(0);
 
@@ -65,7 +65,7 @@ describe("MockMorphoVault", function () {
             expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1000", 6));
         });
 
-        it("Should update data when calling the deposit() function", async function () {
+        it("Should update data when calling the deposit() function", async () => {
             expect(await vault.totalCapital()).to.equal(0);
             expect(await vault._totalAssets()).to.equal(0);
             expect(await vault.totalSupply()).to.equal(0);
@@ -97,7 +97,7 @@ describe("MockMorphoVault", function () {
             ({ usdc, user1, user2, vault } = await setupWithDeposits());
         });
 
-        it("Should transfer USDC when calling the withdraw() function", async function () {
+        it("Should transfer USDC when calling the withdraw() function", async () => {
             expect(await usdc.balanceOf(user1.address)).to.equal(0);
             expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1500", 6));
 
@@ -107,7 +107,7 @@ describe("MockMorphoVault", function () {
             expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1250", 6));
         });
 
-        it("Should update data when calling the withdraw() function", async function () {
+        it("Should update data when calling the withdraw() function", async () => {
             expect(await vault.totalCapital()).to.equal(ethers.parseUnits("1500", 6));
             expect(await vault._totalAssets()).to.equal(ethers.parseUnits("1500", 6));
             expect(await vault.totalSupply()).to.equal(ethers.parseUnits("1500", 6));
@@ -137,7 +137,7 @@ describe("MockMorphoVault", function () {
             ({ usdc, user1, user2, vault } = await setupWithDeposits());
         });
 
-        it("Should transfer USDC when calling the withdraw() function", async function () {
+        it("Should transfer USDC when calling the withdraw() function", async () => {
             expect(await usdc.balanceOf(user1.address)).to.equal(0);
             expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1500", 6));
 
@@ -147,7 +147,7 @@ describe("MockMorphoVault", function () {
             expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1250", 6));
         });
 
-        it("Should update data when calling the withdraw() function", async function () {
+        it("Should update data when calling the withdraw() function", async () => {
             expect(await vault.totalCapital()).to.equal(ethers.parseUnits("1500", 6));
             expect(await vault._totalAssets()).to.equal(ethers.parseUnits("1500", 6));
             expect(await vault.totalSupply()).to.equal(ethers.parseUnits("1500", 6));
@@ -177,7 +177,7 @@ describe("MockMorphoVault", function () {
             ({ usdc, user1, user2, vault } = await setupWithDeposits());
         });
 
-        it("Should transfer USDC when calling the redeem() function", async function () {
+        it("Should transfer USDC when calling the redeem() function", async () => {
             expect(await usdc.balanceOf(user1.address)).to.equal(0);
             expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1500", 6));
 
@@ -187,7 +187,7 @@ describe("MockMorphoVault", function () {
             expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("750", 6));
         });
 
-        it("Should update data when calling the redeem() function", async function () {
+        it("Should update data when calling the redeem() function", async () => {
             expect(await vault.totalCapital()).to.equal(ethers.parseUnits("1500", 6));
             expect(await vault._totalAssets()).to.equal(ethers.parseUnits("1500", 6));
             expect(await vault.totalSupply()).to.equal(ethers.parseUnits("1500", 6));
@@ -217,7 +217,7 @@ describe("MockMorphoVault", function () {
             ({ usdc, user1, user2, vault } = await setupWithDepositsAndIncAssets());
         });
 
-        it("Should transfer USDC with interest minus fees when calling the redeem() function", async function () {
+        it("Should transfer USDC with interest minus fees when calling the redeem() function", async () => {
             expect(await usdc.balanceOf(user1)).to.equal(0);
             expect(await usdc.balanceOf(vault.getAddress())).to.equal(ethers.parseUnits("1840", 6));
 
@@ -234,7 +234,7 @@ describe("MockMorphoVault", function () {
             expect(await usdc.balanceOf(vault.getAddress())).to.be.closeTo(788_295_652, 1);
         });
 
-        it("Should update data when calling the redeem() function", async function () {
+        it("Should update data when calling the redeem() function", async () => {
             // total capital (t0) = 1 500 + 250 = 1 750
             // total supply (t0) = 1 500 + 250 * 1 500 / 1 590 ~= 1 735,849056
 

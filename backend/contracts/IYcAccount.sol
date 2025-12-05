@@ -13,4 +13,6 @@ interface IYcAccount {
     function setNoReallocationPeriod(uint32 _noReallocationPeriod) external;
     function enableReallocation() external;
     function disableReallocation() external;
+    function withdraw(uint _usdcAmount, uint _ethAmount) external;
+    function getUsdcBalance() external view returns(uint, uint);
 }

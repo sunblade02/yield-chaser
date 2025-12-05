@@ -87,7 +87,7 @@ describe("YcAccount", () => {
             ({ user1, user2, usdc, registry, strategy, account } = await setupWithoutVault());
         });
 
-        it("Should disable reallocation", async function () {
+        it("Should disable reallocation", async () => {
             expect(await account.isReallocationEnabled()).to.be.equal(true);
 
             await account.disableReallocation();
@@ -95,15 +95,15 @@ describe("YcAccount", () => {
             expect(await account.isReallocationEnabled()).to.be.equal(false);
         });
 
-        it("Should emit a ReallocationDisabled event", async function () {
+        it("Should emit a ReallocationDisabled event", async () => {
             await expect(account.disableReallocation()).to.emit(account, "ReallocationDisabled");
         });
 
-        it("Only owner could disable reallocation", async function () {
+        it("Only owner could disable reallocation", async () => {
             await expect(account.connect(user2).disableReallocation()).to.be.revertedWithCustomError(account, "OwnableUnauthorizedAccount");
         });
 
-        it("Should revert when the reallocation is already disabled", async function () {
+        it("Should revert when the reallocation is already disabled", async () => {
             await account.disableReallocation();
 
             await expect(account.disableReallocation()).to.be.revertedWithCustomError(account, "ReallocationAlreadyDisabled");
@@ -116,7 +116,7 @@ describe("YcAccount", () => {
             ({ user1, user2, usdc, registry, strategy, account } = await setupWithoutVault());
         });
 
-        it("Should enable reallocation", async function () {
+        it("Should enable reallocation", async () => {
             await account.disableReallocation();
 
             expect(await account.isReallocationEnabled()).to.be.equal(false);
@@ -126,19 +126,19 @@ describe("YcAccount", () => {
             expect(await account.isReallocationEnabled()).to.be.equal(true);
         });
 
-        it("Should emit a ReallocationEnabled event", async function () {
+        it("Should emit a ReallocationEnabled event", async () => {
             await account.disableReallocation();
 
             await expect(account.enableReallocation()).to.emit(account, "ReallocationEnabled");
         });
 
-        it("Only owner could enable reallocation", async function () {
+        it("Only owner could enable reallocation", async () => {
             await account.disableReallocation();
 
             await expect(account.connect(user2).enableReallocation()).to.be.revertedWithCustomError(account, "OwnableUnauthorizedAccount");
         });
 
-        it("Should revert when the reallocation is already enabled", async function () {
+        it("Should revert when the reallocation is already enabled", async () => {
             await expect(account.enableReallocation()).to.be.revertedWithCustomError(account, "ReallocationAlreadyEnabled");
         });
     });
@@ -149,7 +149,7 @@ describe("YcAccount", () => {
             ({ user1, user2, usdc, yct, registry, strategy, account, vault1, vault2 } = await setupWithVaults());
         });
 
-        it("Should set the no reallocation period", async function () {
+        it("Should set the no reallocation period", async () => {
             expect(await account.noReallocationPeriod()).to.be.equal(86_400);
 
             await account.setNoReallocationPeriod(172_800);
@@ -157,18 +157,18 @@ describe("YcAccount", () => {
             expect(await account.noReallocationPeriod()).to.be.equal(172_800);
         });
 
-        it("Should emit a NoReallocationPeriodUpdated event", async function () {
+        it("Should emit a NoReallocationPeriodUpdated event", async () => {
             await expect(account.setNoReallocationPeriod(172_800)).to.emit(account, "NoReallocationPeriodUpdated").withArgs(86_400, 172_800);
         });
 
-        it("Only owner could set the no reallocation period", async function () {
+        it("Only owner could set the no reallocation period", async () => {
             await expect(account.connect(user2).setNoReallocationPeriod(0)).to.be.revertedWithCustomError(account, "OwnableUnauthorizedAccount");
         });
     });
 
     describe("allocate", () => {
 
-        it("Should deposit USDC to the best vault", async function () {
+        it("Should deposit USDC to the best vault", async () => {
             ({ user1, user2, usdc, yct, registry, strategy, account, vault1, vault2 } = await setupWithVaults());
 
             expect(await usdc.balanceOf(account)).to.be.equal(ethers.parseUnits("5000", 6));
@@ -187,13 +187,13 @@ describe("YcAccount", () => {
             expect(await account.depositAmount()).to.be.equal(ethers.parseUnits("5000", 6));
         });
 
-        it("Should emit a USDCAllocated event", async function () {
+        it("Should emit a USDCAllocated event", async () => {
             ({ user1, user2, usdc, yct, registry, strategy, account, vault1, vault2 } = await setupWithVaults());
 
             await expect(account.allocate()).to.emit(account, "USDCAllocated").withArgs(ethers.parseUnits("5000", 6), vault2);
         });
 
-        it("Should revert when the strategy has no vault", async function () {
+        it("Should revert when the strategy has no vault", async () => {
             ({ user1, user2, usdc, registry, strategy, account } = await setupWithoutVault());
 
             await expect(account.allocate()).to.be.revertedWithCustomError(account, "NoVault");
@@ -202,7 +202,7 @@ describe("YcAccount", () => {
 
     describe("receive", () => {
 
-        it("Should emit a ETHReceived event", async function () {
+        it("Should emit a ETHReceived event", async () => {
             ({ user1, user2, usdc, registry, strategy, account } = await setupWithoutVault());
             
             const tx = await user1.sendTransaction({
@@ -220,7 +220,7 @@ describe("YcAccount", () => {
             ({ user1, user2, usdc, registry, strategy, account, vault1, vault2 } = await setupWithAllocation());
         });
 
-        it("Should revert when the account has less ETH than ETH fixed fee", async function () {
+        it("Should revert when the account has less ETH than ETH fixed fee", async () => {
             expect(await account.currentVault()).to.be.equal(vault2);
 
             await registry.updateStrategyVaultsNetAPY(strategy, [
@@ -236,7 +236,7 @@ describe("YcAccount", () => {
             await expect(account.checkReallocation()).to.be.revertedWithCustomError(account, "NotEnoughETH");
         });
 
-        it("Should revert when currently within the no-reallocation period", async function () {
+        it("Should revert when currently within the no-reallocation period", async () => {
             await user1.sendTransaction({
                 to: account,
                 value: ethers.parseEther("1")
@@ -257,7 +257,7 @@ describe("YcAccount", () => {
             await expect(account.checkReallocation()).to.be.revertedWithCustomError(account, "WithinNoReallocationPeriod");
         });
 
-        it("Should revert when the best vault is the current vault", async function () {
+        it("Should revert when the best vault is the current vault", async () => {
             await user1.sendTransaction({
                 to: account,
                 value: ethers.parseEther("1")
@@ -273,7 +273,7 @@ describe("YcAccount", () => {
             await expect(account.checkReallocation()).to.be.revertedWithCustomError(account, "NoVaultChange");
         });
 
-        it("Should return data when not currently in the no-reallocation period and the best vault is not the current vault", async function () {
+        it("Should return data when not currently in the no-reallocation period and the best vault is not the current vault", async () => {
             await user1.sendTransaction({
                 to: account,
                 value: ethers.parseEther("1")
@@ -306,7 +306,7 @@ describe("YcAccount", () => {
             ({ user1, user2, usdc, yct, registry, strategy, account, vault1, vault2, ethFixedReallocationFee, usdcYieldFeeRate } = await setupWithAllocation());
         });
 
-        it("Should revert when the account has less ETH than ETH fixed fee", async function () {
+        it("Should revert when the account has less ETH than ETH fixed fee", async () => {
             expect(await account.currentVault()).to.be.equal(vault2);
 
             await registry.updateStrategyVaultsNetAPY(strategy, [
@@ -322,7 +322,7 @@ describe("YcAccount", () => {
             await expect(account.reallocate()).to.be.revertedWithCustomError(account, "NotEnoughETH");
         });
 
-        it("Should revert when currently within the no-reallocation period", async function () {
+        it("Should revert when currently within the no-reallocation period", async () => {
             await user1.sendTransaction({
                 to: account,
                 value: ethers.parseEther("1")
@@ -343,7 +343,7 @@ describe("YcAccount", () => {
             await expect(account.reallocate()).to.be.revertedWithCustomError(account, "WithinNoReallocationPeriod");
         });
 
-        it("Should revert when the best vault is the current vault", async function () {
+        it("Should revert when the best vault is the current vault", async () => {
             await user1.sendTransaction({
                 to: account,
                 value: ethers.parseEther("1")
@@ -381,10 +381,10 @@ describe("YcAccount", () => {
                 ]);
             });
 
-            it("Should reallocate from vault2 to vault1", async function () {
+            it("Should reallocate from vault2 to vault1", async () => {
                 expect(await ethers.provider.getBalance(account)).to.be.equal(ethers.parseEther("1"));
 
-                expect(await yct.balanceOf(account)).to.be.equal(ethers.parseUnits("1", 18));
+                expect(await yct.balanceOf(user1)).to.be.equal(ethers.parseUnits("1", 18));
 
                 expect(await usdc.balanceOf(registry)).to.be.equal(0);
                 expect(await usdc.balanceOf(account)).to.be.equal(0);
@@ -407,7 +407,7 @@ describe("YcAccount", () => {
 
                 expect(await ethers.provider.getBalance(account)).to.be.lessThan(ethers.parseEther("1") - ethFixedReallocationFee);
 
-                expect(await yct.balanceOf(account)).to.be.equal(ethers.parseUnits("2", 18));
+                expect(await yct.balanceOf(user1)).to.be.equal(ethers.parseUnits("2", 18));
 
                 // 261.90 * 5% = 13.095
                 const usdcFee = ethers.parseUnits("13.095", 6);
@@ -425,16 +425,129 @@ describe("YcAccount", () => {
                 expect(await account.currentVault()).to.be.equal(vault1);
             });
 
-            it("Should emit a USDCAllocated event", async function () {
+            it("Should emit a USDCAllocated event", async () => {
                 await vault2.incAssets(ethers.parseUnits("300", 6)); // +6%
 
                 // 5 261.90 - 13.095 = 5 248.805
                 await expect(account.reallocate()).to.emit(account, "USDCAllocated").withArgs(ethers.parseUnits("5248.805", 6), vault1);
             });
 
-            it("Should emit a USDCDisallocated event", async function () {
-                await expect(account.reallocate()).to.emit(account, "USDCDisallocated").withArgs(ethers.parseUnits("5000", 6), vault2);
+            it("Should emit a USDCDisallocated event", async () => {
+                await expect(account.reallocate()).to.emit(account, "USDCDisallocated").withArgs(ethers.parseUnits("5000", 6), 0, vault2);
+            });
+
+            it("Should not change capital", async () => {
+                expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
+
+                await vault2.incAssets(ethers.parseUnits("300", 6));
+                await account.reallocate();
+
+                expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
+
+                let netAPYs = [
+                    8e4,  // 8 % net APY
+                    85e3, // 8,5 % net APY
+                ];
+                 
+                for (let i = 0; i < 10; i++) {
+                    await registry.updateStrategyVaultsNetAPY(strategy, [
+                        vault1,
+                        vault2
+                    ], netAPYs);
+                    netAPYs = netAPYs.reverse();
+                    let assets = 100 + Math.floor(Math.random() * 900);
+                    await vault1.incAssets(ethers.parseUnits(assets.toString(), 6));
+                    // 1 day + 1 second
+                    await networkHelpers.time.increase(86401);
+                    await account.reallocate();
+
+                    expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
+                }
             });
         })
     })
+
+    describe("withdraw", () => {
+        
+        beforeEach(async () => {
+            ({ user1, user2, usdc, yct, registry, strategy, account, vault1, vault2, ethFixedReallocationFee, usdcYieldFeeRate } = await setupWithAllocation());
+            
+            const tx = await user1.sendTransaction({
+                to: account,
+                value: ethers.parseEther("1")
+            });
+        });
+
+        it("Should withdraw all USDC and ETH", async () => {
+            const ethBalance0 = await ethers.provider.getBalance(user1);
+            expect(await usdc.balanceOf(user1)).to.be.equal(ethers.parseUnits("10000", 6));
+            expect(await usdc.balanceOf(vault2)).to.be.equal(ethers.parseUnits("5000", 6));
+            expect(await ethers.provider.getBalance(account)).to.be.equal(ethers.parseEther("1"));
+            const [ usdcBalance0, usdcBalanceFromVault0 ] = await account.getUsdcBalance();
+            expect(usdcBalance0).to.be.equal(0);
+            expect(usdcBalanceFromVault0).to.be.equal(ethers.parseUnits("5000", 6));
+            expect(await vault2.balanceOf(account)).to.be.equal(ethers.parseUnits("5000", 6));
+            expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
+            
+            const tx = await account.withdraw(ethers.parseUnits("5000", 6), ethers.parseEther("1"));
+            const receipt = await tx.wait();
+            const gasUsed: bigint = receipt.gasUsed;
+            const gasPrice: bigint = tx.gasPrice || receipt.effectiveGasPrice;
+            const cost: bigint = gasUsed * gasPrice;
+
+            expect(await ethers.provider.getBalance(user1)).to.be.equal(ethBalance0 + ethers.parseEther("1") - cost);
+            expect(await usdc.balanceOf(user1)).to.be.equal(ethers.parseUnits("15000", 6));
+            expect(await usdc.balanceOf(vault2)).to.be.equal(0);
+            expect(await ethers.provider.getBalance(account)).to.be.equal(0);
+            const [ usdcBalance1, usdcBalanceFromVault1 ] = await account.getUsdcBalance();
+            expect(usdcBalance1).to.be.equal(0);
+            expect(usdcBalanceFromVault1).to.be.equal(0);
+            expect(await vault2.balanceOf(account)).to.be.equal(0);
+            expect(await account.capital()).to.be.equal(0);
+        });
+
+        it("Should withdraw a part of USDC and ETH", async () => {
+            const ethBalance0 = await ethers.provider.getBalance(user1);
+            expect(await usdc.balanceOf(user1)).to.be.equal(ethers.parseUnits("10000", 6));
+            expect(await usdc.balanceOf(vault2)).to.be.equal(ethers.parseUnits("5000", 6));
+            expect(await ethers.provider.getBalance(account)).to.be.equal(ethers.parseEther("1"));
+            const [ usdcBalance0, usdcBalanceFromVault0 ] = await account.getUsdcBalance();
+            expect(usdcBalance0).to.be.equal(0);
+            expect(usdcBalanceFromVault0).to.be.equal(ethers.parseUnits("5000", 6));
+            expect(await vault2.balanceOf(account)).to.be.equal(ethers.parseUnits("5000", 6));
+            expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
+            
+            const tx = await account.withdraw(ethers.parseUnits("4000", 6), ethers.parseEther("1"));
+            const receipt = await tx.wait();
+            const gasUsed: bigint = receipt.gasUsed;
+            const gasPrice: bigint = tx.gasPrice || receipt.effectiveGasPrice;
+            const cost: bigint = gasUsed * gasPrice;
+
+            expect(await ethers.provider.getBalance(user1)).to.be.equal(ethBalance0 + ethers.parseEther("1") - cost);
+            expect(await usdc.balanceOf(user1)).to.be.equal(ethers.parseUnits("14000", 6));
+            expect(await usdc.balanceOf(vault2)).to.be.equal(ethers.parseUnits("1000", 6));
+            expect(await ethers.provider.getBalance(account)).to.be.equal(0);
+            const [ usdcBalance1, usdcBalanceFromVault1 ] = await account.getUsdcBalance();
+            expect(usdcBalance1).to.be.equal(0);
+            expect(usdcBalanceFromVault1).to.be.equal(ethers.parseUnits("1000", 6));
+            expect(await vault2.balanceOf(account)).to.be.equal(ethers.parseUnits("1000", 6));
+            expect(await account.capital()).to.be.equal(ethers.parseUnits("1000", 6));
+        });
+
+        it("Should emit a ETHWithdrawn event", async () => {
+            await expect(account.withdraw(ethers.parseUnits("4000", 6), ethers.parseEther("1"))).to.emit(account, "ETHWithdrawn").withArgs(ethers.parseEther("1"));
+        });
+
+        it("Only owner could withdraw USDC and ETH", async () => {
+            await expect(account.connect(user2).withdraw(ethers.parseUnits("4000", 6), ethers.parseEther("1"))).to.be.revertedWithCustomError(account, "OwnableUnauthorizedAccount");
+        });
+
+        it("Should revert when the account has not enough ETH", async () => {
+            await expect(account.withdraw(ethers.parseUnits("4000", 6), ethers.parseEther("2"))).to.be.revertedWithCustomError(account, "NotEnoughETH");
+        });
+
+        it("Should revert when the account has not enough USDC", async () => {
+            await expect(account.withdraw(ethers.parseUnits("10000", 6), ethers.parseEther("1"))).to.be.revertedWithCustomError(account, "NotEnoughUSDC");
+        });
+    });
 });

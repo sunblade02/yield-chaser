@@ -45,7 +45,7 @@ describe("YcStrategy", () => {
             ({ user1, user2, strategy, vault1 } = await setupWithNoVault());
         });
 
-        it("Should set name", async function () {
+        it("Should set name", async () => {
             expect(await strategy.name()).to.be.equal("Strategy 1");
 
             await strategy.setName("Strategy 2");
@@ -53,11 +53,11 @@ describe("YcStrategy", () => {
             expect(await strategy.name()).to.be.equal("Strategy 2");
         });
 
-        it("Should emit a NameSet event", async function () {
+        it("Should emit a NameSet event", async () => {
             await expect(strategy.setName("Strategy 2")).to.emit(strategy, "NameSet").withArgs("Strategy 1", "Strategy 2");
         });
 
-        it("Only owner could set name", async function () {
+        it("Only owner could set name", async () => {
             await expect(strategy.connect(user2).setName("Strategy 2")).to.be.revertedWithCustomError(strategy, "OwnableUnauthorizedAccount");
         });
     });
@@ -68,17 +68,17 @@ describe("YcStrategy", () => {
             ({ user1, user2, strategy, vault1 } = await setupWithNoVault());
         });
 
-        it("Should add a vault", async function () {
+        it("Should add a vault", async () => {
             await strategy.addVault(vault1);
 
             expect(await strategy.vaultsArray(0)).to.be.equal(vault1);
         });
 
-        it("Should emit a VaultAdded event", async function () {
+        it("Should emit a VaultAdded event", async () => {
             await expect(strategy.addVault(vault1)).to.emit(strategy, "VaultAdded").withArgs(vault1);
         });
 
-        it("Only owner could add a vault", async function () {
+        it("Only owner could add a vault", async () => {
             await expect(strategy.connect(user2).addVault(vault1)).to.be.revertedWithCustomError(strategy, "OwnableUnauthorizedAccount");
         });
     });
@@ -89,7 +89,7 @@ describe("YcStrategy", () => {
             ({ user1, user2, strategy, vault1, vault2 } = await setupWithVaults());
         });
 
-        it("Should update vaults net APY", async function () {
+        it("Should update vaults net APY", async () => {
             expect(await strategy.vaults(vault1)).to.be.equal(0);
             expect(await strategy.vaults(vault2)).to.be.equal(0);
 
@@ -105,7 +105,7 @@ describe("YcStrategy", () => {
             expect(await strategy.vaults(vault2)).to.be.equal(85e3);
         });
 
-        it("Should emit a VaultsNetAPYUpdated event", async function () {
+        it("Should emit a VaultsNetAPYUpdated event", async () => {
             await expect(strategy.updateVaultsNetAPY([
                 vault1,
                 vault2
@@ -121,7 +121,7 @@ describe("YcStrategy", () => {
             ]);
         });
 
-        it("Only owner could update vaults net APY", async function () {
+        it("Only owner could update vaults net APY", async () => {
             await expect(strategy.connect(user2).updateVaultsNetAPY([
                 vault1,
                 vault2
@@ -138,7 +138,7 @@ describe("YcStrategy", () => {
             ({ user1, user2, strategy, vault1, vault2 } = await setupWithVaults());
         });
 
-        it("Should return the vault with the highest yield", async function () {
+        it("Should return the vault with the highest yield", async () => {
             await strategy.updateVaultsNetAPY([
                 vault1,
                 vault2
@@ -157,7 +157,7 @@ describe("YcStrategy", () => {
             ({ user1, user2, strategy, vault1, vault2 } = await setupWithVaults());
         });
 
-        it("Should return the vaults in the strategy", async function () {
+        it("Should return the vaults in the strategy", async () => {
             const vaults = await strategy.getVaults();
 
             expect(vaults.length).to.be.equal(2);

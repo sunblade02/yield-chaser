@@ -32,6 +32,11 @@ export const contractABI = [
     },
     {
       "inputs": [],
+      "name": "NoAmount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "NoReallocationNecessary",
       "type": "error"
     },
@@ -53,6 +58,11 @@ export const contractABI = [
     {
       "inputs": [],
       "name": "NotEnoughETH",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotEnoughUSDC",
       "type": "error"
     },
     {
@@ -89,6 +99,11 @@ export const contractABI = [
     },
     {
       "inputs": [],
+      "name": "ReallocationIsDisabled",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "WithinNoReallocationPeriod",
       "type": "error"
     },
@@ -109,6 +124,19 @@ export const contractABI = [
         }
       ],
       "name": "ETHReceived",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "ETHWithdrawn",
       "type": "event"
     },
     {
@@ -187,6 +215,12 @@ export const contractABI = [
           "indexed": false,
           "internalType": "uint256",
           "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "fee",
           "type": "uint256"
         },
         {
@@ -275,6 +309,24 @@ export const contractABI = [
       "name": "enableReallocation",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getUsdcBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -406,6 +458,24 @@ export const contractABI = [
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_usdcAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_ethAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {

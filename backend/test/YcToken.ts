@@ -19,7 +19,7 @@ describe("YcToken", () => {
 
     describe("mint", () => {
 
-        it("Should mint", async function () {
+        it("Should mint", async () => {
             ({ user1, user2, token } = await setup());
 
             expect(await token.balanceOf(user2)).to.be.equal(0);
@@ -29,11 +29,11 @@ describe("YcToken", () => {
             expect(await token.balanceOf(user2)).to.be.equal(ethers.parseUnits("1", 18));
         });
 
-        it("Should emit a Transfer event", async function () {
+        it("Should emit a Transfer event", async () => {
             await expect(token.mint(user2, ethers.parseUnits("1", 18))).to.emit(token, "Transfer").withArgs("0x0000000000000000000000000000000000000000", user2, ethers.parseUnits("1", 18));
         });
 
-        it("Only owner could mint", async function () {
+        it("Only owner could mint", async () => {
             await expect(token.connect(user2).mint(user2, ethers.parseUnits("1", 18))).to.be.revertedWithCustomError(token, "OwnableUnauthorizedAccount");
         });
     });

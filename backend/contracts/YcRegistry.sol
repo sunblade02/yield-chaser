@@ -22,7 +22,8 @@ contract YcRegistry is AccessControl {
     error NotAllowedStrategy();
     error AccountAlreadyExists();
     error ETHTransferFailed();
-    event ETHReceived(address sender, uint amount);
+    error NoAmount();
+    error InvalidAddress();
 
     //----- EVENTS -----//
 
@@ -31,8 +32,8 @@ contract YcRegistry is AccessControl {
     event StrategyNetAPYsUpdated(address bot, IYcStrategy strategy);
     event EthFixedReallocationFeeSet(uint128 oldEthFixedReallocationFee, uint128 newEthFixedReallocationFee);
     event UsdcYieldFeeRateSet(uint16 oldUsdcYieldFeeRate, uint16 newUsdcYieldFeeRate);
-    event YctMinted(address indexed owner, uint amount);
     event StrategyVaultAdded(IYcStrategy strategy, IVaultV2 vault);
+    event ETHReceived(address sender, uint amount);
 
     //----- STATE VARIABLES -----//
 
@@ -104,9 +105,8 @@ contract YcRegistry is AccessControl {
             try account.allocate() {} catch {}
         }
 
-        yct.mint(address(account), 10**18);
+        yct.mint(msg.sender, 10**18);
 
-        emit YctMinted(msg.sender, 10**18);
         emit AccountCreated(msg.sender, _strategy, _amount, msg.value);
 
         return account;
@@ -141,6 +141,7 @@ contract YcRegistry is AccessControl {
     }
 
     /// @notice Set the ETH fixed reallocation fee used when a bot reallocate USDC from an account.
+    /// This function can only be called by admin.
     function setEthFixedReallocationFee(uint128 _ethFixedReallocationFee) external onlyRole(DEFAULT_ADMIN_ROLE) {
         (ethFixedReallocationFee, _ethFixedReallocationFee) = (_ethFixedReallocationFee, ethFixedReallocationFee);
 
@@ -148,6 +149,7 @@ contract YcRegistry is AccessControl {
     }
 
     /// @notice Set the USDC Yield Fee rate used when a bot reallocate USDC from an account.
+    /// This function can only be called by admin.
     function setUsdcYieldFeeRate(uint16 _usdcYieldFeeRate) external onlyRole(DEFAULT_ADMIN_ROLE) {
         (usdcYieldFeeRate, _usdcYieldFeeRate) = (_usdcYieldFeeRate, usdcYieldFeeRate);
 
@@ -156,10 +158,26 @@ contract YcRegistry is AccessControl {
 
     /// @notice Mints 1 YCT and transfers it to the account.
     /// This function can only be called by an account.
-    function mintYct() external onlyRole(ACCOUNT_ROLE) {
-        yct.mint(address(msg.sender), 10**18);
+    function mintYct(address _address) external onlyRole(ACCOUNT_ROLE) {
+        require(_address != address(0), InvalidAddress());
 
-        emit YctMinted(msg.sender, 10**18);
+        yct.mint(_address, 10**18);
+    }
+
+    /// @notice Withdraws USDC from the registry.
+    /// This function can only be called by admin.
+    function withdrawUSDC(uint _amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_amount > 0, NoAmount());
+
+        usdc.transfer(msg.sender, _amount);
+    }
+
+    /// @notice Withdraws ETH from the registry.
+    /// This function can only be called by admin.
+    function withdrawETH(uint _amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_amount > 0, NoAmount());
+
+        payable(msg.sender).transfer(_amount);
     }
 
     receive() payable external {

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Inter  } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/provider/ThemeProvider";
-import Layout from "@/components/shared/Layout";
-import CustomRainbowKitProvider from "@/provider/CustomRainbowKitProvider";
+import { ThemeProvider } from "@/provider/theme-provider";
+import Layout from "@/components/shared/layout";
+import CustomRainbowKitProvider from "@/provider/custom-rainbow-kit-provider";
+import { YcAccountProvider } from "@/provider/yc-account-provider";
 
 const inter = Inter({
     variable: '--font-inter',
@@ -32,7 +33,9 @@ export default function RootLayout({
                     disableTransitionOnChange
                 >
                     <CustomRainbowKitProvider>
-                        <Layout>{children}</Layout>
+                        <YcAccountProvider>
+                            <Layout>{children}</Layout>
+                        </YcAccountProvider>
                     </CustomRainbowKitProvider>
                 </ThemeProvider>
             </body>
