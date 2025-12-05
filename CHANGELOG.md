@@ -9,6 +9,7 @@
 - [User] View account data
 - [User] View history
 - [User] Deposit USDC and ETH
+- [User] Withdraw USDC and ETH
 - [User] Enable bot
 - [User] Disable bot
 - [Authorized bot] Update yield data

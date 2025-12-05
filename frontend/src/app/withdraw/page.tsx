@@ -1,10 +1,10 @@
 "use client"
 
-import Step1 from "@/components/shared/deposit/step1";
-import Step2 from "@/components/shared/deposit/step2";
+import Step1 from "@/components/shared/withdraw/step1";
+import Step2 from "@/components/shared/withdraw/step2";
 import { useState } from "react";
 
-const DepositPage = () => {
+const WithdrawPage = () => {
     const [ step, setStep ] = useState(1);
     const [ usdcAmount, setUsdcAmount ] = useState(0);
     const [ ethAmount, setEthAmount ] = useState(0);
@@ -23,4 +23,4 @@ const DepositPage = () => {
     );
 }
 
-export default DepositPage
+export default WithdrawPage

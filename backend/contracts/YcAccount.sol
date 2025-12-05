@@ -26,15 +26,18 @@ contract YcAccount is IYcAccount, Ownable {
     error ReallocationAlreadyEnabled();
     error ReallocationAlreadyDisabled();
     error ReallocationIsDisabled();
+    error NoAmount();
+    error NotEnoughUSDC();
 
     //----- EVENTS -----//
 
     event USDCAllocated(uint amount, IVaultV2 vault);
-    event USDCDisallocated(uint amount, IVaultV2 vault);
+    event USDCDisallocated(uint amount, uint fee, IVaultV2 vault);
     event ETHReceived(address sender, uint amount);
     event NoReallocationPeriodUpdated(uint32 oldNoReallocationPeriod, uint32 newNoReallocationPeriod);
     event ReallocationEnabled();
     event ReallocationDisabled();
+    event ETHWithdrawn(uint amount);
 
     //----- STATE VARIABLES -----//
 
@@ -90,6 +93,40 @@ contract YcAccount is IYcAccount, Ownable {
         }
     }
 
+    /// @notice Disallocates USDC from a vault and returns the yield from the vault and the yield chaser fee.
+    function disallocate(IVaultV2 _vault, bool _all, uint _usdcAmount) private returns(uint, uint) {
+        uint shares = _vault.balanceOf(address(this));
+        uint yield;
+        uint fee;
+
+        if (shares > 0) {
+            uint totalAmount = _vault.previewRedeem(shares);
+            uint usdcAmount = _all ? totalAmount : _usdcAmount;
+
+            uint part = usdcAmount * 10**6 / totalAmount;
+
+            if (totalAmount > depositAmount) {
+                yield = (totalAmount - depositAmount) * part / 10**6;
+                uint16 usdcYieldFeeRate = registry.usdcYieldFeeRate();
+                fee = yield * usdcYieldFeeRate / 10**5;
+            }
+
+            if (_all) {
+                _vault.redeem(shares, address(this), address(this));
+            } else {
+                _vault.withdraw(usdcAmount, address(this), address(this));
+            }
+
+            emit USDCDisallocated(usdcAmount, fee, _vault);
+
+            if (fee > 0) {
+                usdc.transfer(address(registry), fee);
+            }
+        }
+
+        return (yield, fee);
+    }
+
     /// @notice Reallocates USDC to the highest performing yield vault according to the strategy.
     /// The account pays fees to the registry.
     /// The account receives 1 YCT.
@@ -105,46 +142,26 @@ contract YcAccount is IYcAccount, Ownable {
 
         uint yield;
         uint fee;
-        uint64 delta;
+        uint64 prevYield = depositAmount - capital;
 
         if (address(disallocationVault) != address(0)) {
-            uint shares = disallocationVault.balanceOf(address(this));
-            if (shares > 0) {
-                uint amount = disallocationVault.previewRedeem(shares);
-                
-                if (amount > depositAmount) {
-                    yield = amount - depositAmount;
-                    uint16 usdcYieldFeeRate = registry.usdcYieldFeeRate();
-                    fee = yield * usdcYieldFeeRate / 10**5;
-                }
-
-                delta = depositAmount - capital;
-
-                delete depositAmount;
-
-                disallocationVault.redeem(shares, address(this), address(this));
-
-                emit USDCDisallocated(amount, disallocationVault);
-
-                if (fee > 0) {
-                    usdc.transfer(address(registry), fee);
-                }
-            }
+            (yield, fee) = disallocate(disallocationVault, true, 0);
         }
 
         delete capital;
+        delete depositAmount;
 
         allocate();
 
-        if (delta > 0) {
-            capital -= delta;
+        if (prevYield > 0) {
+            capital -= prevYield;
         }
 
         if (yield > 0) {
             capital -= uint64(yield - fee);
         }
 
-        registry.mintYct();
+        registry.mintYct(owner());
 
         payable(address(registry)).transfer(ethFixedReallocationFee);
 
@@ -186,7 +203,7 @@ contract YcAccount is IYcAccount, Ownable {
         emit ReallocationEnabled();
     }
 
-    /// @notice Disable the reallocation
+    /// @notice Disables the reallocation.
     /// This function can only be called by the owner.
     function disableReallocation() external onlyOwner {
         require(isReallocationEnabled, ReallocationAlreadyDisabled());
@@ -194,6 +211,56 @@ contract YcAccount is IYcAccount, Ownable {
         delete isReallocationEnabled;
 
         emit ReallocationDisabled();
+    }
+
+    /// @notice Withdraws USDC from the account and the current vault and/or ETH.
+    /// This function can only be called by the owner.
+    function withdraw(uint _usdcAmount, uint _ethAmount) external onlyOwner {
+        require(address(this).balance >= _ethAmount, NotEnoughETH());
+        require(_usdcAmount > 0 || _ethAmount > 0, NoAmount());
+
+        if (_ethAmount > 0) {
+            payable(msg.sender).transfer(_ethAmount);
+
+            emit ETHWithdrawn(_ethAmount);
+        }
+
+        if (_usdcAmount > 0) {
+            (uint usdcBalance, uint usdcBalanceFromVault) = getUsdcBalance();
+
+            if (_usdcAmount > usdcBalance) {
+                uint usdcAmountFromVault = _usdcAmount - usdcBalance;
+                require(usdcAmountFromVault <= usdcBalanceFromVault, NotEnoughUSDC());
+
+                (uint yield, uint fee) = disallocate(currentVault, usdcAmountFromVault == usdcBalanceFromVault, usdcAmountFromVault);
+
+                if (usdcAmountFromVault > yield) {
+                    depositAmount -= uint64(usdcAmountFromVault - yield);
+                    capital -= uint64(usdcAmountFromVault - yield);
+                }
+
+                if (fee > 0) {
+                    _usdcAmount -= fee;
+                }
+            }
+
+            usdc.transfer(msg.sender, _usdcAmount);
+        }
+    }
+
+    /// @notice Gets the USDC balance of the account and the USDC balance in the current vault.
+    function getUsdcBalance() public view returns(uint, uint) {
+        uint usdcBalance = usdc.balanceOf(address(this));
+        uint usdcBalanceFromVault;
+
+        if (address(currentVault) != address(0)) {
+            uint shares = currentVault.balanceOf(address(this));
+            if (shares > 0) {
+                usdcBalanceFromVault = currentVault.previewRedeem(shares);
+            }
+        }
+
+        return (usdcBalance, usdcBalanceFromVault);
     }
 
     receive() payable external {

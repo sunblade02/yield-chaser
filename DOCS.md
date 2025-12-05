@@ -43,6 +43,18 @@ function enableReallocation() external
 function disableReallocation() external
 ```
 
+### withdraw
+
+```solidity
+function withdraw(uint256 _usdcAmount, uint256 _ethAmount) external
+```
+
+### getUsdcBalance
+
+```solidity
+function getUsdcBalance() external view returns (uint256, uint256)
+```
+
 ## IYcFactory
 
 ### Contract
@@ -163,8 +175,25 @@ This function can only be called by the owner.
 function disableReallocation() external
 ```
 
-Disable the reallocation
+Disables the reallocation.
 This function can only be called by the owner.
+
+### withdraw
+
+```solidity
+function withdraw(uint256 _usdcAmount, uint256 _ethAmount) external
+```
+
+Withdraws USDC from the account and the current vault and/or ETH.
+This function can only be called by the owner.
+
+### getUsdcBalance
+
+```solidity
+function getUsdcBalance() public view returns (uint256, uint256)
+```
+
+Gets the USDC balance of the account and the USDC balance in the current vault.
 
 ### receive
 
@@ -232,7 +261,7 @@ event USDCAllocated(uint256 amount, contract IVaultV2 vault)
 ### USDCDisallocated
 
 ```solidity
-event USDCDisallocated(uint256 amount, contract IVaultV2 vault)
+event USDCDisallocated(uint256 amount, uint256 fee, contract IVaultV2 vault)
 ```
 
 ### ETHReceived
@@ -257,6 +286,12 @@ event ReallocationEnabled()
 
 ```solidity
 event ReallocationDisabled()
+```
+
+### ETHWithdrawn
+
+```solidity
+event ETHWithdrawn(uint256 amount)
 ```
 
 inherits Ownable:
@@ -437,6 +472,7 @@ function setEthFixedReallocationFee(uint128 _ethFixedReallocationFee) external
 ```
 
 Set the ETH fixed reallocation fee used when a bot reallocate USDC from an account.
+This function can only be called by admin.
 
 ### setUsdcYieldFeeRate
 
@@ -445,15 +481,34 @@ function setUsdcYieldFeeRate(uint16 _usdcYieldFeeRate) external
 ```
 
 Set the USDC Yield Fee rate used when a bot reallocate USDC from an account.
+This function can only be called by admin.
 
 ### mintYct
 
 ```solidity
-function mintYct() external
+function mintYct(address _address) external
 ```
 
 Mints 1 YCT and transfers it to the account.
 This function can only be called by an account.
+
+### withdrawUSDC
+
+```solidity
+function withdrawUSDC(uint256 _amount) external
+```
+
+Withdraws USDC from the registry.
+This function can only be called by admin.
+
+### withdrawETH
+
+```solidity
+function withdrawETH(uint256 _amount) external
+```
+
+Withdraws ETH from the registry.
+This function can only be called by admin.
 
 ### receive
 
@@ -599,12 +654,6 @@ inherits IAccessControl:
 
  --- 
 ### Events:
-### ETHReceived
-
-```solidity
-event ETHReceived(address sender, uint256 amount)
-```
-
 ### StrategyAdded
 
 ```solidity
@@ -635,16 +684,16 @@ event EthFixedReallocationFeeSet(uint128 oldEthFixedReallocationFee, uint128 new
 event UsdcYieldFeeRateSet(uint16 oldUsdcYieldFeeRate, uint16 newUsdcYieldFeeRate)
 ```
 
-### YctMinted
-
-```solidity
-event YctMinted(address owner, uint256 amount)
-```
-
 ### StrategyVaultAdded
 
 ```solidity
 event StrategyVaultAdded(contract IYcStrategy strategy, contract IVaultV2 vault)
+```
+
+### ETHReceived
+
+```solidity
+event ETHReceived(address sender, uint256 amount)
 ```
 
 inherits AccessControl:

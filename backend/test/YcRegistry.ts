@@ -79,7 +79,7 @@ describe("YcRegistry", () => {
             ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
         });
         
-        it("Should emit a ETHReceived event", async function () {
+        it("Should emit a ETHReceived event", async () => {
             const tx = await user1.sendTransaction({
                 to: registry,
                 value: ethers.parseEther("1")
@@ -89,12 +89,63 @@ describe("YcRegistry", () => {
         });
     });
 
+    describe("withdrawUSDC", () => {
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
+
+            await usdc.faucet(registry, ethers.parseUnits("10000", 6));
+        });
+
+        it("Should withdraw USDC", async () => {
+            expect(await usdc.balanceOf(user1)).to.be.equal(ethers.parseUnits("10000", 6));
+            expect(await usdc.balanceOf(registry)).to.be.equal(ethers.parseUnits("10000", 6));
+
+            await registry.withdrawUSDC(ethers.parseUnits("7500", 6));
+
+            expect(await usdc.balanceOf(user1)).to.be.equal(ethers.parseUnits("17500", 6));
+            expect(await usdc.balanceOf(registry)).to.be.equal(ethers.parseUnits("2500", 6));
+        });
+
+        it("Only admin could withdraw USDC", async () => {
+            await expect(registry.connect(user2).withdrawUSDC(ethers.parseUnits("7500", 6))).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
+        });
+    });
+
+    describe("withdrawETH", () => {
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
+
+            await user1.sendTransaction({
+                to: registry,
+                value: ethers.parseEther("1")
+            });
+        });
+
+        it("Should withdraw ETH", async () => {
+            const ethBalance0 = await ethers.provider.getBalance(user1);
+            expect(await ethers.provider.getBalance(registry)).to.be.equal(ethers.parseEther("1"));
+
+            const tx = await registry.withdrawETH(ethers.parseEther("1"));
+            const receipt = await tx.wait();
+            const gasUsed: bigint = receipt.gasUsed;
+            const gasPrice: bigint = tx.gasPrice || receipt.effectiveGasPrice;
+            const cost: bigint = gasUsed * gasPrice;
+
+            expect(await ethers.provider.getBalance(user1)).to.be.equal(ethBalance0 + ethers.parseEther("1") - cost);
+            expect(await ethers.provider.getBalance(registry)).to.be.equal(0);
+        });
+
+        it("Only admin could withdraw ETH", async () => {
+            await expect(registry.connect(user2).withdrawETH(ethers.parseEther("1"))).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
+        });
+    });
+
     describe("grantBotRole", () => {
         beforeEach(async () => {
             ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
         });
 
-        it("Should grant bot role", async function () {
+        it("Should grant bot role", async () => {
             const botRole = await registry.BOT_ROLE();
             expect(await registry.hasRole(botRole, user2)).to.be.equal(false);
 
@@ -103,12 +154,12 @@ describe("YcRegistry", () => {
             expect(await registry.hasRole(botRole, user2)).to.be.equal(true);
         });
 
-        it("Should emit a RoleGranted event", async function () {
+        it("Should emit a RoleGranted event", async () => {
             const botRole = await registry.BOT_ROLE();
             await expect(registry.grantBotRole(user2)).to.emit(registry, "RoleGranted").withArgs(botRole, user2, user1);
         });
 
-        it("Only admin could grant bot role", async function () {
+        it("Only admin could grant bot role", async () => {
             await expect(registry.connect(user2).grantBotRole(user2)).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
         });
     });
@@ -118,7 +169,7 @@ describe("YcRegistry", () => {
             ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
         });
 
-        it("Should revoke bot role", async function () {
+        it("Should revoke bot role", async () => {
             const botRole = await registry.BOT_ROLE();
             
             await registry.grantBotRole(user2);
@@ -130,7 +181,7 @@ describe("YcRegistry", () => {
             expect(await registry.hasRole(botRole, user2)).to.be.equal(false);
         });
 
-        it("Should emit a RoleRevoked event", async function () {
+        it("Should emit a RoleRevoked event", async () => {
             const botRole = await registry.BOT_ROLE();
             
             await registry.grantBotRole(user2);
@@ -138,7 +189,7 @@ describe("YcRegistry", () => {
             await expect(registry.revokeBotRole(user2)).to.emit(registry, "RoleRevoked").withArgs(botRole, user2, user1);
         });
 
-        it("Only admin could grant bot role", async function () {
+        it("Only admin could grant bot role", async () => {
             await registry.grantBotRole(user2);
 
             await expect(registry.connect(user2).revokeBotRole(user2)).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
@@ -150,7 +201,7 @@ describe("YcRegistry", () => {
             ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
         });
 
-        it("Should add an strategy", async function () {
+        it("Should add an strategy", async () => {
             await expect(registry.strategies(0)).to.be.revertedWithoutReason(ethers);
             expect(await registry.allowedStrategies(strategy)).to.be.equal(false);
 
@@ -161,19 +212,19 @@ describe("YcRegistry", () => {
             expect(await registry.allowedStrategies(strategy)).to.be.equal(true);
         });
 
-        it("Should emit a StrategyAdded event", async function () {
+        it("Should emit a StrategyAdded event", async () => {
             await strategy.transferOwnership(registry);
 
             await expect(registry.addStrategy(strategy)).to.emit(registry, "StrategyAdded");
         });
 
-        it("Only admin could add a strategy", async function () {
+        it("Only admin could add a strategy", async () => {
             await strategy.transferOwnership(registry);
 
             await expect(registry.connect(user2).addStrategy(strategy)).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
         });
 
-        it("Only an onwed strategy can be added", async function () {
+        it("Only an onwed strategy can be added", async () => {
             await expect(registry.addStrategy(strategy)).to.be.revertedWithCustomError(registry, "NotStrategyOwner");
         });
     });
@@ -184,7 +235,7 @@ describe("YcRegistry", () => {
             ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
         });
 
-        it("Should set ETH fixed reallocation fee", async function () {
+        it("Should set ETH fixed reallocation fee", async () => {
             expect(await registry.ethFixedReallocationFee()).to.be.equal(ethers.parseEther("0.00004"));
 
             await registry.setEthFixedReallocationFee(ethers.parseEther("0.00005"));
@@ -192,11 +243,11 @@ describe("YcRegistry", () => {
             expect(await registry.ethFixedReallocationFee()).to.be.equal(ethers.parseEther("0.00005"));
         });
 
-        it("Should emit a EthFixedReallocationFeeSet event", async function () {
+        it("Should emit a EthFixedReallocationFeeSet event", async () => {
             await expect(registry.setEthFixedReallocationFee(ethers.parseEther("0.00005"))).to.emit(registry, "EthFixedReallocationFeeSet").withArgs(ethers.parseEther("0.00004"), ethers.parseEther("0.00005"));
         });
 
-        it("Only admin could set ETH fixed reallocation fee", async function () {
+        it("Only admin could set ETH fixed reallocation fee", async () => {
             await expect(registry.connect(user2).setEthFixedReallocationFee(ethers.parseEther("0.00005"))).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
         });
     });
@@ -207,7 +258,7 @@ describe("YcRegistry", () => {
             ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
         });
 
-        it("Should set USDC yield fee rate", async function () {
+        it("Should set USDC yield fee rate", async () => {
             expect(await registry.usdcYieldFeeRate()).to.be.equal(ethers.parseUnits("5", 3));
 
             await registry.setUsdcYieldFeeRate(ethers.parseUnits("65", 2));
@@ -215,11 +266,11 @@ describe("YcRegistry", () => {
             expect(await registry.usdcYieldFeeRate()).to.be.equal(ethers.parseUnits("65", 2));
         });
 
-        it("Should emit a UsdcYieldFeeRateSet event", async function () {
+        it("Should emit a UsdcYieldFeeRateSet event", async () => {
             await expect(registry.setUsdcYieldFeeRate(ethers.parseUnits("65", 2))).to.emit(registry, "UsdcYieldFeeRateSet").withArgs(ethers.parseUnits("5", 3), ethers.parseUnits("65", 2));
         });
 
-        it("Only admin could set USDC yield fee rate", async function () {
+        it("Only admin could set USDC yield fee rate", async () => {
             await expect(registry.connect(user2).setUsdcYieldFeeRate(ethers.parseUnits("65", 2))).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
         });
     });
@@ -229,7 +280,7 @@ describe("YcRegistry", () => {
             ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithStrategy());
         });
 
-        it("Should create an account", async function () {
+        it("Should create an account", async () => {
             expect(await registry.accounts(user1)).to.be.equal(ZeroAddress);
 
             await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
@@ -239,7 +290,7 @@ describe("YcRegistry", () => {
             expect(await registry.accounts(user1)).not.to.be.equal(ZeroAddress);
         });
 
-        it("Should transfer ETH to the new account", async function () {
+        it("Should transfer ETH to the new account", async () => {
             await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
             });
@@ -249,8 +300,9 @@ describe("YcRegistry", () => {
             expect(await ethers.provider.getBalance(account)).to.be.equal(ethers.parseEther("0.001"));
         });
 
-        it("Should mint 1 YCT for the new account", async function () {
+        it("Should mint 1 YCT for the new account's owner", async () => {
             expect(await yct.totalSupply()).to.be.equal(0);
+            expect(await yct.balanceOf(user1)).to.be.equal(0);
 
             await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
@@ -259,10 +311,10 @@ describe("YcRegistry", () => {
             const account = await registry.accounts(user1);
 
             expect(await yct.totalSupply()).to.be.equal(ethers.parseUnits("1", 18));
-            expect(await yct.balanceOf(account)).to.be.equal(ethers.parseUnits("1", 18));
+            expect(await yct.balanceOf(user1)).to.be.equal(ethers.parseUnits("1", 18));
         });
 
-        it("Should transfer USDC to the best vault for the new account", async function () {
+        it("Should transfer USDC to the best vault for the new account", async () => {
             const balance0 = await usdc.balanceOf(vault2);
             const shares = await vault2.previewDeposit(ethers.parseUnits("1000", 6));
 
@@ -279,13 +331,13 @@ describe("YcRegistry", () => {
             expect(await vault2.balanceOf(account)).to.be.equal(shares);
         });
 
-        it("Should emit a AccountCreated event", async function () {
+        it("Should emit a AccountCreated event", async () => {
             await expect(registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
             })).to.emit(registry, "AccountCreated").withArgs(user1, strategy, ethers.parseUnits("1000", 6), ethers.parseEther("0.001"));
         });
 
-        it("Only an account with allowed strategy can be created", async function () {
+        it("Only an account with allowed strategy can be created", async () => {
             const strategy2 = await ethers.deployContract("YcStrategy", [ "Strategy 2", [] ]);
 
             await expect(registry.createAccount(strategy2, ethers.parseUnits("1000", 6), 86400, {
@@ -293,7 +345,7 @@ describe("YcRegistry", () => {
             })).to.be.revertedWithCustomError(registry, "NotAllowedStrategy");
         });
 
-        it("Only one account per user can be created", async function () {
+        it("Only one account per user can be created", async () => {
             await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 value: ethers.parseEther("0.001")
             });
@@ -309,7 +361,7 @@ describe("YcRegistry", () => {
             ({ user1, user2, bot, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithAuthorizedBot());
         });
 
-        it("Should update vaults net APYs for a strategy", async function () {
+        it("Should update vaults net APYs for a strategy", async () => {
             expect(await strategy.vaults(vault1)).to.be.equal(8e4);
             expect(await strategy.vaults(vault2)).to.be.equal(85e3);
 
@@ -325,7 +377,7 @@ describe("YcRegistry", () => {
             expect(await strategy.vaults(vault2)).to.be.equal(8e3);
         });
         
-        it("Should emit a StrategyNetAPYsUpdated event", async function () {
+        it("Should emit a StrategyNetAPYsUpdated event", async () => {
             await expect(registry.connect(bot).updateStrategyVaultsNetAPY(strategy,[
                 vault1,
                 vault2
@@ -335,7 +387,7 @@ describe("YcRegistry", () => {
             ])).to.emit(registry, "StrategyNetAPYsUpdated").withArgs(bot, strategy);
         });
         
-        it("Only bot could update vaults net APYs for a strategy", async function () {
+        it("Only bot could update vaults net APYs for a strategy", async () => {
             await expect(registry.updateStrategyVaultsNetAPY(strategy, [
                 vault1,
                 vault2

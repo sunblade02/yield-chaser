@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
+import { IERC20 } from "../morpho-org/vault-v2/src/interfaces/IERC20.sol";
 import { IMockERC20 } from "./IMockERC20.sol";
 
-contract MockMorphoVault {
+contract MockMorphoVault is IERC20 {
     error CannotReceiveShares();
     error CannotSendShares();
     error TransferFromReverted();
@@ -64,15 +65,20 @@ contract MockMorphoVault {
             return assets;
         }
 
-        uint grossShares = _totalAssets == 0 ? assets : (assets * totalSupply) / _totalAssets;
+        uint256 grossShares = (assets * totalSupply * 1e18) / _totalAssets / 1e18;
 
-        uint capitalPart = grossShares * totalCapital / totalSupply;
-        uint interest = assets > capitalPart ? assets - capitalPart : 0;
+        uint256 capitalPart = (grossShares * totalCapital) / totalSupply;
+        uint256 interest = assets > capitalPart ? assets - capitalPart : 0;
 
-        uint managementFeeAmount = (interest * managementFee) / 10**18;
-        uint performanceFeeAmount = (interest * performanceFee) / 10**18;
+        uint256 managementFeeAmount = (interest * managementFee) / 1e18;
+        uint256 performanceFeeAmount = (interest * performanceFee) / 1e18;
 
-        return assets - managementFeeAmount - performanceFeeAmount;
+        uint256 grossAssets = assets + managementFeeAmount + performanceFeeAmount;
+
+        // Arrondi vers le haut
+        shares = (grossAssets * totalSupply + _totalAssets - 1) / _totalAssets;
+
+        return shares;
     }
 
     function redeem(uint256 shares, address receiver, address onBehalf) external returns (uint256) {
@@ -86,7 +92,7 @@ contract MockMorphoVault {
             return shares;
         }
 
-        uint grossAssets = _totalAssets == 0 ? shares : (shares * _totalAssets) / totalSupply;
+        uint grossAssets = shares * _totalAssets / totalSupply;
 
         uint capitalPart = shares * totalCapital / totalSupply;
         uint interest = grossAssets > capitalPart ? grossAssets - capitalPart : 0;
@@ -114,5 +120,25 @@ contract MockMorphoVault {
     function incAssets(uint amount) external {
         _totalAssets += amount;
         IMockERC20(asset).faucet(address(this), amount);
+    }
+
+    function decimals() external pure returns (uint8) {
+        return 18;
+    }
+
+    function transfer(address to, uint256 shares) external pure returns (bool success) {
+        return false;
+    }
+
+    function transferFrom(address from, address to, uint256 shares) external pure returns (bool success) {
+        return false;
+    }
+
+    function approve(address spender, uint256 shares) external pure returns (bool success) {
+        return false;
+    }
+
+    function allowance(address owner, address spender) external pure returns (uint256) {
+        return 0;
     }
 }

@@ -7,7 +7,7 @@ const { ethers } = await network.connect({
 
 const accountAdress = "0x2408AfBfa81775DF2Eb9D0c108d1150A16E1872a";
 
-async function checkReallocation(account: YcAccount): Promise<boolean> {
+async function checkReallocation(account: YcAccount): Promise<[string, bigint]> {
     return await account.checkReallocation();
 }
 
