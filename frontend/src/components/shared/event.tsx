@@ -1,8 +1,7 @@
 import { explorerAddressURI, explorerName, explorerTxURI } from "@/constants";
 import { EventType } from "@/types/event-type"
-import { formatAddress } from "@/utils";
+import { formatAddress, readableNumber } from "@/utils";
 import { ExternalLink } from "lucide-react";
-import { formatUnits } from "viem";
 
 const Event = ({
     event
@@ -23,19 +22,19 @@ const Event = ({
             break;
         case "USDCAllocated":
             title = "Allocation";
-            description = formatUnits((event.args as any).amount, 6) + " USDC allocated to vault " + formatAddress((event.args as any).vault);
+            description = readableNumber((event.args as any).amount, 6) + " USDC allocated to vault " + formatAddress((event.args as any).vault);
             description = (
                 <>
-                    {formatUnits((event.args as any).amount, 6)} USDC allocated to vault <a className="text-main" href={explorerAddressURI + (event.args as any).vault} target="_blank">{formatAddress((event.args as any).vault)} <ExternalLink size={14} className="inline -mt-1" /></a>
+                    {readableNumber((event.args as any).amount, 6)} USDC allocated to vault <a className="text-main" href={explorerAddressURI + (event.args as any).vault} target="_blank">{formatAddress((event.args as any).vault)} <ExternalLink size={14} className="inline -mt-1" /></a>
                 </>
             );
             break;
         case "USDCDisallocated":
             title = "Disallocation";
-            description = formatUnits((event.args as any).amount, 6) + " USDC disallocated form vault " + formatAddress((event.args as any).vault);
+            description = readableNumber((event.args as any).amount, 6) + " USDC disallocated form vault " + formatAddress((event.args as any).vault);
             description = (
                 <>
-                    {formatUnits((event.args as any).amount, 6)} USDC allocated to vault <a className="text-main" href={explorerAddressURI + (event.args as any).vault} target="_blank">{formatAddress((event.args as any).vault)} <ExternalLink size={14} className="inline -mt-1" /></a>
+                    {readableNumber((event.args as any).amount, 6)} USDC allocated to vault <a className="text-main" href={explorerAddressURI + (event.args as any).vault} target="_blank">{formatAddress((event.args as any).vault)} <ExternalLink size={14} className="inline -mt-1" /></a>
                 </>
             );
             break;
@@ -43,7 +42,7 @@ const Event = ({
             title = "Receiving USDC";
             description = (
                 <>
-                    {formatUnits((event.args as any).value, 6)} USDC received 
+                    {readableNumber((event.args as any).value, 6)} USDC received 
                 </>
             );
             break;
@@ -51,7 +50,7 @@ const Event = ({
             title = "Withdrawing  USDC";
             description = (
                 <>
-                    {formatUnits((event.args as any).value, 6)} USDC withdrawn
+                    {readableNumber((event.args as any).value, 6)} USDC withdrawn
                 </>
             );
             break;
@@ -59,7 +58,7 @@ const Event = ({
             title = "Receiving ETH";
             description = (
                 <>
-                    {formatUnits((event.args as any).amount, 18)} ETH received from <a className="text-main" href={explorerAddressURI + (event.args as any).sender} target="_blank">{formatAddress((event.args as any).sender)} <ExternalLink size={14} className="inline -mt-1" /></a>
+                    {readableNumber((event.args as any).amount, 18)} ETH received from <a className="text-main" href={explorerAddressURI + (event.args as any).sender} target="_blank">{formatAddress((event.args as any).sender)} <ExternalLink size={14} className="inline -mt-1" /></a>
                 </>
             );
             break;
@@ -67,7 +66,7 @@ const Event = ({
             title = "Withdrawing  ETH";
             description = (
                 <>
-                    {formatUnits((event.args as any).amount, 18)} ETH withdrawn
+                    {readableNumber((event.args as any).amount, 18)} ETH withdrawn
                 </>
             );
             break;

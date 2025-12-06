@@ -26,3 +26,10 @@ deploy-localhost:
 
 test:
 	docker exec -w /app/backend yield-chaser-dev npx hardhat test --coverage
+
+deploy-sepolia:
+	docker exec -w /app/backend -ti yield-chaser-dev npx hardhat run scripts/sepoliadeploy.ts
+
+verify-sepolia:
+	docker exec -w /app/backend -ti yield-chaser-dev \
+		npx hardhat verify --network sepolia 0xCBfa14005ef442f9B3c3cEA517f0af1783C36a38 0x361680F6052786187dFEe22355eD18113A8de3DC 40000000000000 5000
