@@ -3,6 +3,7 @@ import { useGetBalances } from "@/hooks/user/use-get-balances";
 import BalancesForm from "../balances-form";
 import { useGasPrice } from "wagmi";
 import { allocateGasCost, transferGasCost } from "@/constants";
+import Link from "next/link";
 
 const Step1 = ({
     setStep,
@@ -39,6 +40,9 @@ const Step1 = ({
                 ethAmount={ethAmount}
                 setEthAmount={setEthAmount} />
             <Button className="w-full mb-2" disabled={usdcAmount === 0 && ethAmount === 0} onClick={() => setStep(2)}>Preview deposit</Button>
+            <Button className="w-full mb-8" variant="outline" asChild>
+                <Link href="/dashboard">Cancel</Link>
+            </Button>
         </div>
     )
 }

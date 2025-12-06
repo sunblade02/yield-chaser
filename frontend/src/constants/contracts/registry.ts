@@ -1,4 +1,13 @@
-export const contractAddress = "0x59b670e9fA9D0A427751Af201D676719a970857b";
+const ENV = process.env.NEXT_PUBLIC_ENV || "dev";
+
+let address = "0x59b670e9fA9D0A427751Af201D676719a970857b"; // hardhat;
+switch (ENV) {
+  case "staging": // sepolia
+    address = "0xCBfa14005ef442f9B3c3cEA517f0af1783C36a38";
+    break;
+}
+export const contractAddress = address;
+
 export const contractABI = [
     {
       "inputs": [

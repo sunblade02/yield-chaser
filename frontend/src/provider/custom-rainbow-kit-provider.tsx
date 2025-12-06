@@ -9,6 +9,7 @@ import {
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import {
+    type Chain,
     hardhat
 } from 'wagmi/chains';
 import {
@@ -18,12 +19,22 @@ import {
 import { ReactNode, useEffect, useState } from 'react';
 import CustomAvatar from '@/components/shared/rainbow-kit/custom-avatar';
 import { useTheme } from 'next-themes';
+import { sepolia } from '@/utils/sepolia';
 
+const ENV = process.env.NEXT_PUBLIC_ENV || "dev";
 const PROJECT_ID = process.env.NEXT_PUBLIC_WAGMI_PROVIDER_PROJECT_ID || "";
+
+let chain: Chain = hardhat;
+switch (ENV) {
+    case "staging":
+        chain = sepolia;
+        break;
+}
+
 const config = getDefaultConfig({
     appName: 'Yield Chaser',
     projectId: PROJECT_ID,
-    chains: [hardhat],
+    chains: [chain],
     ssr: false,
 });
 
