@@ -7,7 +7,6 @@ import { publicClient } from "@/utils/client";
 import { createContext, useContext, useState } from "react";
 import { parseAbiItem, zeroAddress } from "viem";
 import { contractAddress as registryContractAddress } from "@/constants/contracts/registry";
-import { deploymentBlock } from "@/constants";
 import { useAccount } from "wagmi";
 import { contractAddress as usdcAddress } from "@/constants/contracts/usdc";
 
@@ -26,6 +25,9 @@ interface YcAccountContextType {
 }
 
 const YcAccountContext = createContext<YcAccountContextType | undefined>(undefined);
+
+const DEPLOYMENT_BLOCK = process.env.NEXT_PUBLIC_DEPLOYMENT_BLOCK || "0";
+const deploymentBlock = BigInt(DEPLOYMENT_BLOCK);
 
 export const YcAccountProvider = ({ 
     children 

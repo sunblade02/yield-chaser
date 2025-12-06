@@ -1,4 +1,3 @@
-export const deploymentBlock = 0n;
 export const explorerName = "Sepolia Testnet Explorer";
 export const explorerBaseURI = "https://sepolia.etherscan.io/";
 export const explorerTxURI = explorerBaseURI + "tx/";
