@@ -30,22 +30,15 @@ contract YcStrategy is IYcStrategy, Ownable {
 
     constructor(string memory _name, IVaultV2[] memory _vaults) Ownable(msg.sender) {
         name = _name;
-        
-        for (uint i; i < _vaults.length; i++) {
-            _addVault(_vaults[i]);
-        }
+        vaultsArray = _vaults;
     }
 
     /// @notice Adds a vault to the strategy.
     /// This function can only be called by the owner.
     function addVault(IVaultV2 _vault) public onlyOwner {
-        _addVault(_vault);
+        vaultsArray.push(_vault);
 
         emit VaultAdded(_vault);
-    }
-
-    function _addVault(IVaultV2 _vault) private {
-        vaultsArray.push(_vault);
     }
 
     /// @notice Set the strategy's name

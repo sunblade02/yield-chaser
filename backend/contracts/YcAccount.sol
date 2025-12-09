@@ -3,6 +3,7 @@ pragma solidity 0.8.28;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { IVaultV2 } from "./morpho-org/vault-v2/src/interfaces/IVaultV2.sol"; 
 import { IYcAccount } from "./IYcAccount.sol";
 import { YcRegistry } from "./YcRegistry.sol";
@@ -13,7 +14,7 @@ import { IYcStrategy } from "./IYcStrategy.sol";
 /// @notice This smart contract implements a Yield Chaser account. 
 /// This account is owned exclusively by the user who can manage their funds.
 /// The funds were moved on DeFi protocol according to a strategy defined by the user.
-contract YcAccount is IYcAccount, Ownable {
+contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
 
     //----- ERRORS -----//
 
@@ -112,8 +113,16 @@ contract YcAccount is IYcAccount, Ownable {
             }
 
             if (_all) {
+                delete capital;
+                delete depositAmount;
+
                 _vault.redeem(shares, address(this), address(this));
             } else {
+                if (_usdcAmount > yield) {
+                    depositAmount -= uint64(_usdcAmount - yield);
+                    capital -= uint64(_usdcAmount - yield);
+                }
+
                 _vault.withdraw(usdcAmount, address(this), address(this));
             }
 
@@ -148,16 +157,13 @@ contract YcAccount is IYcAccount, Ownable {
             (yield, fee) = disallocate(disallocationVault, true, 0);
         }
 
-        delete capital;
-        delete depositAmount;
-
         allocate();
 
         if (prevYield > 0) {
             capital -= prevYield;
         }
 
-        if (yield > 0) {
+        if (yield > fee) {
             capital -= uint64(yield - fee);
         }
 
@@ -215,7 +221,7 @@ contract YcAccount is IYcAccount, Ownable {
 
     /// @notice Withdraws USDC from the account and the current vault and/or ETH.
     /// This function can only be called by the owner.
-    function withdraw(uint _usdcAmount, uint _ethAmount) external onlyOwner {
+    function withdraw(uint _usdcAmount, uint _ethAmount) external onlyOwner nonReentrant {
         require(address(this).balance >= _ethAmount, NotEnoughETH());
         require(_usdcAmount > 0 || _ethAmount > 0, NoAmount());
 
@@ -232,12 +238,7 @@ contract YcAccount is IYcAccount, Ownable {
                 uint usdcAmountFromVault = _usdcAmount - usdcBalance;
                 require(usdcAmountFromVault <= usdcBalanceFromVault, NotEnoughUSDC());
 
-                (uint yield, uint fee) = disallocate(currentVault, usdcAmountFromVault == usdcBalanceFromVault, usdcAmountFromVault);
-
-                if (usdcAmountFromVault > yield) {
-                    depositAmount -= uint64(usdcAmountFromVault - yield);
-                    capital -= uint64(usdcAmountFromVault - yield);
-                }
+                (, uint fee) = disallocate(currentVault, usdcAmountFromVault == usdcBalanceFromVault, usdcAmountFromVault);
 
                 if (fee > 0) {
                     _usdcAmount -= fee;
@@ -254,10 +255,13 @@ contract YcAccount is IYcAccount, Ownable {
         uint usdcBalanceFromVault;
 
         if (address(currentVault) != address(0)) {
-            uint shares = currentVault.balanceOf(address(this));
-            if (shares > 0) {
-                usdcBalanceFromVault = currentVault.previewRedeem(shares);
-            }
+            try currentVault.balanceOf(address(this)) returns (uint shares) {
+                if (shares > 0) {
+                    try currentVault.previewRedeem(shares) returns (uint vaultBalance) {
+                        usdcBalanceFromVault = vaultBalance;
+                    } catch {}
+                }
+            } catch {}
         }
 
         return (usdcBalance, usdcBalanceFromVault);

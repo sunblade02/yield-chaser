@@ -25,7 +25,19 @@ deploy-localhost:
 	docker exec -w /app/backend -ti yield-chaser-dev npx hardhat run scripts/localhost/deploy.ts
 
 test:
-	docker exec -w /app/backend yield-chaser-dev npx hardhat test --coverage
+	docker exec -w /app/backend yield-chaser-dev npx hardhat test --coverage --gas-stats
+
+myth-analyze:
+	mkdir -p backend/myth
+	docker run --rm -v "$$(pwd)"/backend:/share -w /share mythril/myth bash -c "\
+		echo 'analyze YcRegistry.sol' &&\
+		myth analyze contracts/YcRegistry.sol --solv 0.8.28 --solc-json remappings.json > myth/YcRegistry &&\
+		echo 'analyze YcFactory.sol' &&\
+		myth analyze contracts/YcFactory.sol --solv 0.8.28 --solc-json remappings.json > myth/YcFactory &&\
+		echo 'analyze YcStrategy.sol' &&\
+		myth analyze contracts/YcStrategy.sol --solv 0.8.28 --solc-json remappings.json > myth/YcStrategy &&\
+		echo 'analyze YcAccount.sol' &&\
+		myth analyze contracts/YcAccount.sol --solv 0.8.28 --solc-json remappings.json > myth/YcAccount"
 
 deploy-sepolia:
 	docker exec -w /app/backend -ti yield-chaser-dev npx hardhat run scripts/sepoliadeploy.ts
