@@ -96,8 +96,7 @@ contract YcRegistry is AccessControl {
         _grantRole(ACCOUNT_ROLE, address(account));
 
         if (msg.value > 0) {
-            (bool success, ) = address(account).call{value: msg.value}("");
-            require(success, ETHTransferFailed());
+            payable(address(account)).transfer(msg.value);
         }
 
         if (_amount > 0) {
