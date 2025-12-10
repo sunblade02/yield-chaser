@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ZeroAddress } from "ethers";
 import { network } from "hardhat";
+import fc from "fast-check";
 
 const { ethers, networkHelpers } = await network.connect();
 
@@ -197,6 +198,32 @@ describe("YcAccount", () => {
             ({ user1, user2, usdc, registry, strategy, account } = await setupWithoutVault());
 
             await expect(account.allocate()).to.be.revertedWithCustomError(account, "NoVault");
+        });
+
+        it("Fuzzing test", async () => {
+            ({ user1, user2, usdc, yct, registry, strategy, account, vault1, vault2 } = await setupWithVaults());
+
+            await fc.assert(
+                fc.asyncProperty(
+                    fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                    async (amount: bigint) => {
+                        await usdc.faucet(account, amount);
+                        
+                        const balance = await usdc.balanceOf(account);
+                        if (balance === 0n) {
+                            await expect(account.allocate()).to.be.revertedWithCustomError(account, "NoUSDC");
+                        } else {
+                            const depositAmount = await account.depositAmount();
+                            const capital = await account.capital();
+
+                            await account.allocate();
+
+                            expect(await account.depositAmount()).to.be.equal(depositAmount + balance);
+                            expect(await account.capital()).to.be.equal(capital + balance);
+                        }
+                    }
+                )
+            );
         });
     });
 
@@ -436,33 +463,33 @@ describe("YcAccount", () => {
                 await expect(account.reallocate()).to.emit(account, "USDCDisallocated").withArgs(ethers.parseUnits("5000", 6), 0, vault2);
             });
 
-            it("Should not change capital", async () => {
-                expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
-
-                await vault2.incAssets(ethers.parseUnits("300", 6));
-                await account.reallocate();
-
-                expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
+            it("Fuzzing test", async () => {
+                await account.setNoReallocationPeriod(0);
 
                 let netAPYs = [
-                    8e4,  // 8 % net APY
                     85e3, // 8,5 % net APY
+                    8e4,  // 8 % net APY
                 ];
-                 
-                for (let i = 0; i < 10; i++) {
-                    await registry.updateStrategyVaultsNetAPY(strategy, [
-                        vault1,
-                        vault2
-                    ], netAPYs);
-                    netAPYs = netAPYs.reverse();
-                    let assets = 100 + Math.floor(Math.random() * 900);
-                    await vault1.incAssets(ethers.parseUnits(assets.toString(), 6));
-                    // 1 day + 1 second
-                    await networkHelpers.time.increase(86401);
-                    await account.reallocate();
 
-                    expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
-                }
+                await fc.assert(
+                    fc.asyncProperty(
+                        fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                        fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                        async (incAmountVault1: bigint, incAmountVault2: bigint) => {
+                            await registry.updateStrategyVaultsNetAPY(strategy, [
+                                vault1,
+                                vault2
+                            ], netAPYs);
+                            netAPYs = netAPYs.reverse();
+
+                            await vault1.incAssets(incAmountVault1);
+                            await vault2.incAssets(incAmountVault2);
+                            await account.reallocate();
+
+                            expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
+                        }
+                    )
+                );
             });
         })
     })
@@ -548,6 +575,33 @@ describe("YcAccount", () => {
 
         it("Should revert when the account has not enough USDC", async () => {
             await expect(account.withdraw(ethers.parseUnits("10000", 6), ethers.parseEther("1"))).to.be.revertedWithCustomError(account, "NotEnoughUSDC");
+        });
+
+        it("Fuzzing test", async () => {
+            await usdc.faucet(account, 10_000_000_000_000_000_000n);
+            await account.allocate();
+
+            await user1.sendTransaction({
+                to: account,
+                value: ethers.parseEther("9990")
+            });
+
+            await fc.assert(
+                fc.asyncProperty(
+                    fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                    fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                    fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                    async (incAssets: bigint, usdcAmount: bigint, ethAmount: bigint) => {
+                        if (usdcAmount === 0n && ethAmount === 0n) {
+                            await expect(account.withdraw(usdcAmount, ethAmount)).to.be.revertedWithCustomError(account, "NoAmount");
+                        } else {
+                            await vault2.incAssets(incAssets);
+
+                            await account.withdraw(usdcAmount, ethAmount);
+                        }
+                    }
+                )
+            );
         });
     });
 });
