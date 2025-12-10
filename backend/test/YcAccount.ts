@@ -583,7 +583,7 @@ describe("YcAccount", () => {
 
             await user1.sendTransaction({
                 to: account,
-                value: ethers.parseEther("9990")
+                value: ethers.parseEther("9000")
             });
 
             await fc.assert(
