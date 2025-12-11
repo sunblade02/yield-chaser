@@ -15,4 +15,5 @@ interface IYcAccount {
     function disableReallocation() external;
     function withdraw(uint _usdcAmount, uint _ethAmount) external;
     function getUsdcBalance() external view returns(uint, uint);
+    function transferOwnership(address _newOwner) external;
 }

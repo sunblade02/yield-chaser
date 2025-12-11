@@ -34,6 +34,8 @@ contract YcRegistry is AccessControl {
     event UsdcYieldFeeRateSet(uint16 oldUsdcYieldFeeRate, uint16 newUsdcYieldFeeRate);
     event StrategyVaultAdded(IYcStrategy strategy, IVaultV2 vault);
     event ETHReceived(address sender, uint amount);
+    event AccountTransfered(address indexed to, address indexed from);
+    event AccountClosed(address indexed owner, IYcAccount account);
 
     //----- STATE VARIABLES -----//
 
@@ -177,6 +179,25 @@ contract YcRegistry is AccessControl {
         require(_amount > 0, NoAmount());
 
         payable(msg.sender).transfer(_amount);
+    }
+
+    /// @notice Transfers an account.
+    /// This function can only be called by an account.
+    function transferAccount(address _to, address _from) external onlyRole(ACCOUNT_ROLE) {
+        require(address(accounts[_from]) == address(0), AccountAlreadyExists());
+
+        delete accounts[_to];
+        accounts[_from] = IYcAccount(msg.sender);
+
+        emit AccountTransfered(_to, _from);
+    }
+
+    /// @notice Closes an account.
+    /// This function can only be called by an account.
+    function closeAccount(address _owner) external onlyRole(ACCOUNT_ROLE) {
+        delete accounts[_owner];
+
+        emit AccountClosed(_owner, IYcAccount(msg.sender));
     }
 
     receive() payable external {

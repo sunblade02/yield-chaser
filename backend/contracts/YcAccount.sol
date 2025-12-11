@@ -29,6 +29,7 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
     error ReallocationIsDisabled();
     error NoAmount();
     error NotEnoughUSDC();
+    error Disabled();
 
     //----- EVENTS -----//
 
@@ -39,6 +40,7 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
     event ReallocationEnabled();
     event ReallocationDisabled();
     event ETHWithdrawn(uint amount);
+    event Closed();
 
     //----- STATE VARIABLES -----//
 
@@ -47,16 +49,24 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
     uint64 public lastReallocation;
     uint32 public noReallocationPeriod;
 
-    // Packing : 64 + 64 + 1 = 129
+    // Packing : 64 + 64 + 1 + 1 = 130
     uint64 public capital;
     uint64 public depositAmount;
     bool public isReallocationEnabled;
+    bool public isEnabled;
 
     YcRegistry public registry;
 
     IYcStrategy public strategy;
 
     IVaultV2 public currentVault;
+
+    //----- MODIFIER -----//
+
+    modifier enabled {
+        require(isEnabled, Disabled());
+        _;
+    }
 
     //----- FUNCTIONS -----//
 
@@ -66,10 +76,12 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
         strategy = _strategy;
         noReallocationPeriod = _noReallocationPeriod;
         isReallocationEnabled = true;
+        isEnabled = true;
     }
 
     /// @notice Allocates USDC to the highest performing yield vault according to the strategy.
-    function allocate() payable public {
+    /// This function can only be called when account is enabled.
+    function allocate() payable public enabled {
         uint amount = usdc.balanceOf(address(this));
         require(amount > 0, NoUSDC());
 
@@ -137,11 +149,11 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
     }
 
     /// @notice Reallocates USDC to the highest performing yield vault according to the strategy.
+    /// This function can only be called when account is enabled.
     /// The account pays fees to the registry.
     /// The account receives 1 YCT.
     /// The sender is refunded for the gas cost.
-    /// @dev reentrancy attack / DoS Gas limit
-    function reallocate() external {
+    function reallocate() external enabled {
         (IVaultV2 vault, uint128 ethFixedReallocationFee) = checkReallocation();
 
         lastReallocation = uint64(block.timestamp);
@@ -175,8 +187,9 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
         payable(msg.sender).transfer(cost);
     }
 
-    /// @notice Checks for reallocation and returns used data
-    function checkReallocation() public view returns (IVaultV2, uint128) {
+    /// @notice Checks for reallocation and returns used data.
+    /// This function can only be called when account is enabled.
+    function checkReallocation() public view enabled returns (IVaultV2, uint128) {
         require(isReallocationEnabled, ReallocationIsDisabled());
 
         uint128 ethFixedReallocationFee = registry.ethFixedReallocationFee();
@@ -191,7 +204,7 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
         return (vault, ethFixedReallocationFee);
     }
 
-    /// @notice Set the no reallocation period in seconds
+    /// @notice Sets the no reallocation period in seconds.
     /// This function can only be called by the owner.
     function setNoReallocationPeriod(uint32 _noReallocationPeriod) external onlyOwner {
         (noReallocationPeriod, _noReallocationPeriod) = (_noReallocationPeriod, noReallocationPeriod);
@@ -199,7 +212,7 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
         emit NoReallocationPeriodUpdated(_noReallocationPeriod, noReallocationPeriod);
     }
 
-    /// @notice Enable the reallocation
+    /// @notice Enables the reallocation.
     /// This function can only be called by the owner.
     function enableReallocation() external onlyOwner {
         require(isReallocationEnabled == false, ReallocationAlreadyEnabled());
@@ -221,7 +234,7 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
 
     /// @notice Withdraws USDC from the account and the current vault and/or ETH.
     /// This function can only be called by the owner.
-    function withdraw(uint _usdcAmount, uint _ethAmount) external onlyOwner nonReentrant {
+    function withdraw(uint _usdcAmount, uint _ethAmount) public onlyOwner nonReentrant {
         require(address(this).balance >= _ethAmount, NotEnoughETH());
         require(_usdcAmount > 0 || _ethAmount > 0, NoAmount());
 
@@ -250,7 +263,8 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
     }
 
     /// @notice Gets the USDC balance of the account and the USDC balance in the current vault.
-    function getUsdcBalance() public view returns(uint, uint) {
+    /// This function can only be called when account is enabled.
+    function getUsdcBalance() public view enabled returns(uint, uint) {
         uint usdcBalance = usdc.balanceOf(address(this));
         uint usdcBalanceFromVault;
 
@@ -267,7 +281,36 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
         return (usdcBalance, usdcBalanceFromVault);
     }
 
-    receive() payable external {
+    /// @notice Closes the account and withdraws all USDC from the account and the current vault and/or ETH.
+    /// This function can only be called by the owner.
+    function close() external onlyOwner {
+        (uint usdcBalance, uint usdcBalanceFromVault) = getUsdcBalance();
+        withdraw(usdcBalance + usdcBalanceFromVault, address(this).balance);
+
+        delete usdc;
+        delete strategy;
+        delete noReallocationPeriod;
+        delete lastReallocation;
+        delete isReallocationEnabled;
+        delete isEnabled;
+        delete currentVault;
+
+        registry.closeAccount(msg.sender);
+
+        delete registry;
+
+        renounceOwnership();
+
+        emit Closed();
+    }
+
+    /// @inheritdoc Ownable
+    function transferOwnership(address _newOwner) public override(IYcAccount, Ownable) onlyOwner {
+        super.transferOwnership(_newOwner);
+        registry.transferAccount(msg.sender, _newOwner);
+    }
+
+    receive() payable external enabled {
         emit ETHReceived(msg.sender, msg.value);
     }
 }
