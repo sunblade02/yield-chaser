@@ -32,6 +32,11 @@ export const contractABI = [
     },
     {
       "inputs": [],
+      "name": "Disabled",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "NoAmount",
       "type": "error"
     },
@@ -104,8 +109,19 @@ export const contractABI = [
     },
     {
       "inputs": [],
+      "name": "ReentrancyGuardReentrantCall",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "WithinNoReallocationPeriod",
       "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "Closed",
+      "type": "event"
     },
     {
       "anonymous": false,
@@ -273,6 +289,13 @@ export const contractABI = [
     },
     {
       "inputs": [],
+      "name": "close",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "currentVault",
       "outputs": [
         {
@@ -324,6 +347,19 @@ export const contractABI = [
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "isEnabled",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -438,7 +474,7 @@ export const contractABI = [
       "inputs": [
         {
           "internalType": "address",
-          "name": "newOwner",
+          "name": "_newOwner",
           "type": "address"
         }
       ],

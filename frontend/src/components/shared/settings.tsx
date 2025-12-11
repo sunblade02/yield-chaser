@@ -18,12 +18,12 @@ import { useTheme } from "next-themes";
 import { useEffect } from "react";
 import { Spinner } from "../ui/spinner";
 import { useDisableReallocation } from "@/hooks/account/use-disable-reallocation";
-import { zeroAddress } from "viem";
 import { useYcAccount } from "@/provider/yc-account-provider";
+import { useClose } from "@/hooks/account/use-close";
 
 const Settings = () => {
     const { theme, setTheme } = useTheme();
-    const { account, hasAccount, fetchEvents } = useYcAccount();
+    const { account, hasAccount, getAccountRefetch, fetchEvents } = useYcAccount();
 
     const { data: isReallocationEnabled, isFetched, refetch } = useIsReallocationEnabled(account?.address);
 
@@ -46,7 +46,19 @@ const Settings = () => {
         }
     }, [enableReallocationIsSuccess, disableReallocationIsSuccess]);
 
-    const isLoading = enableReallocationIsLoading || disableReallocationIsLoading;
+    const setReallocationIsLoading = enableReallocationIsLoading || disableReallocationIsLoading;
+
+    const { isLoading: closeIsLoading, isSuccess: closeIsSuccess, close } = useClose();
+
+    const doClose = () => {
+        close(account?.address);
+    }
+
+    useEffect(() => {
+        if (closeIsSuccess) {
+            getAccountRefetch();
+        }
+    }, [closeIsSuccess]);
 
     return (
         <Dialog>
@@ -75,24 +87,37 @@ const Settings = () => {
                     </div>
                 </div>
                 {hasAccount === true &&
-                    <div className="pb-6">
-                        <h3 className="pb-3 text-sm">Suspend agent activity</h3>
-                        <div className="text-sm text-muted-foreground pb-3">
-                            Temporarily pause automated strategy management.
+                    <>
+                        <div className="pb-6">
+                            <h3 className="pb-3 text-sm">Suspend agent activity</h3>
+                            <div className="text-sm text-muted-foreground pb-3">
+                                Temporarily pause automated strategy management.
+                            </div>
+                            <div className="flex justify-center gap-2">
+                                {isFetched && isReallocationEnabled == true &&
+                                    <Button disabled={setReallocationIsLoading} variant="destructive" onClick={doDisableReallocation}>
+                                        {setReallocationIsLoading ? <Spinner /> : "Suspend"}
+                                    </Button>
+                                }
+                                {isFetched && isReallocationEnabled == false &&
+                                    <Button disabled={setReallocationIsLoading} className="bg-main text-white hover:bg-main" onClick={doEnableReallocation}>
+                                        {setReallocationIsLoading ? <Spinner /> : "Resume"}
+                                    </Button>
+                                }
+                            </div>
                         </div>
-                        <div className="flex justify-center gap-2">
-                            {isFetched && isReallocationEnabled == true &&
-                                <Button disabled={isLoading} variant="destructive" onClick={doDisableReallocation}>
-                                    {isLoading ? <Spinner /> : "Suspend"}
+                        <div className="pb-6">
+                            <h3 className="pb-3 text-sm">Close account</h3>
+                            <div className="text-sm text-muted-foreground pb-3">
+                                Withdraw all funds and close the position.
+                            </div>
+                            <div className="flex justify-center gap-2">
+                                <Button disabled={closeIsLoading} variant="destructive" onClick={doClose}>
+                                    {closeIsLoading ? <Spinner /> : "Close your account"}
                                 </Button>
-                            }
-                            {isFetched && isReallocationEnabled == false &&
-                                <Button disabled={isLoading} className="bg-main text-white hover:bg-main" onClick={doEnableReallocation}>
-                                    {isLoading ? <Spinner /> : "Resume"}
-                                </Button>
-                            }
+                            </div>
                         </div>
-                    </div>
+                    </>
                 }
                 <DialogFooter>
                     <DialogClose asChild>

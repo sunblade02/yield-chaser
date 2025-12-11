@@ -63,6 +63,16 @@ export const contractABI = [
     },
     {
       "inputs": [],
+      "name": "InvalidAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NoAmount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "NotAllowedStrategy",
       "type": "error"
     },
@@ -70,6 +80,25 @@ export const contractABI = [
       "inputs": [],
       "name": "NotStrategyOwner",
       "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "contract IYcAccount",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "AccountClosed",
+      "type": "event"
     },
     {
       "anonymous": false,
@@ -100,6 +129,25 @@ export const contractABI = [
         }
       ],
       "name": "AccountCreated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        }
+      ],
+      "name": "AccountTransfered",
       "type": "event"
     },
     {
@@ -286,25 +334,6 @@ export const contractABI = [
       "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "YctMinted",
-      "type": "event"
-    },
-    {
       "inputs": [],
       "name": "ACCOUNT_ROLE",
       "outputs": [
@@ -410,6 +439,19 @@ export const contractABI = [
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "closeAccount",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -548,7 +590,13 @@ export const contractABI = [
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_address",
+          "type": "address"
+        }
+      ],
       "name": "mintYct",
       "outputs": [],
       "stateMutability": "nonpayable",
@@ -676,6 +724,24 @@ export const contractABI = [
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "_to",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_from",
+          "type": "address"
+        }
+      ],
+      "name": "transferAccount",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "contract IYcStrategy",
           "name": "_strategy",
           "type": "address"
@@ -720,6 +786,32 @@ export const contractABI = [
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdrawETH",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdrawUSDC",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {

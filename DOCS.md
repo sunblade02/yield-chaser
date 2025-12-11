@@ -55,6 +55,12 @@ function withdraw(uint256 _usdcAmount, uint256 _ethAmount) external
 function getUsdcBalance() external view returns (uint256, uint256)
 ```
 
+### transferOwnership
+
+```solidity
+function transferOwnership(address _newOwner) external
+```
+
 ## IYcFactory
 
 ### Contract
@@ -115,6 +121,14 @@ The funds were moved on DeFi protocol according to a strategy defined by the use
 YcAccount : contracts/YcAccount.sol
 
  --- 
+### Modifiers:
+### enabled
+
+```solidity
+modifier enabled()
+```
+
+ --- 
 ### Functions:
 ### constructor
 
@@ -129,6 +143,7 @@ function allocate() public payable
 ```
 
 Allocates USDC to the highest performing yield vault according to the strategy.
+This function can only be called when account is enabled.
 
 ### reallocate
 
@@ -137,11 +152,10 @@ function reallocate() external
 ```
 
 Reallocates USDC to the highest performing yield vault according to the strategy.
+This function can only be called when account is enabled.
 The account pays fees to the registry.
 The account receives 1 YCT.
 The sender is refunded for the gas cost.
-
-_reentrancy attack / DoS Gas limit_
 
 ### checkReallocation
 
@@ -149,7 +163,8 @@ _reentrancy attack / DoS Gas limit_
 function checkReallocation() public view returns (contract IVaultV2, uint128)
 ```
 
-Checks for reallocation and returns used data
+Checks for reallocation and returns used data.
+This function can only be called when account is enabled.
 
 ### setNoReallocationPeriod
 
@@ -157,7 +172,7 @@ Checks for reallocation and returns used data
 function setNoReallocationPeriod(uint32 _noReallocationPeriod) external
 ```
 
-Set the no reallocation period in seconds
+Sets the no reallocation period in seconds.
 This function can only be called by the owner.
 
 ### enableReallocation
@@ -166,7 +181,7 @@ This function can only be called by the owner.
 function enableReallocation() external
 ```
 
-Enable the reallocation
+Enables the reallocation.
 This function can only be called by the owner.
 
 ### disableReallocation
@@ -181,7 +196,7 @@ This function can only be called by the owner.
 ### withdraw
 
 ```solidity
-function withdraw(uint256 _usdcAmount, uint256 _ethAmount) external
+function withdraw(uint256 _usdcAmount, uint256 _ethAmount) public
 ```
 
 Withdraws USDC from the account and the current vault and/or ETH.
@@ -194,12 +209,41 @@ function getUsdcBalance() public view returns (uint256, uint256)
 ```
 
 Gets the USDC balance of the account and the USDC balance in the current vault.
+This function can only be called when account is enabled.
+
+### close
+
+```solidity
+function close() external
+```
+
+Closes the account and withdraws all USDC from the account and the current vault and/or ETH.
+This function can only be called by the owner.
+
+### transferOwnership
+
+```solidity
+function transferOwnership(address _newOwner) public
+```
+
+_Transfers ownership of the contract to a new account (`newOwner`).
+Can only be called by the current owner._
 
 ### receive
 
 ```solidity
 receive() external payable
 ```
+
+inherits ReentrancyGuard:
+### _reentrancyGuardEntered
+
+```solidity
+function _reentrancyGuardEntered() internal view returns (bool)
+```
+
+_Returns true if the reentrancy guard is currently set to "entered", which indicates there is a
+`nonReentrant` function in the call stack._
 
 inherits Ownable:
 ### owner
@@ -229,15 +273,6 @@ _Leaves the contract without owner. It will not be possible to call
 
 NOTE: Renouncing ownership will leave the contract without an owner,
 thereby disabling any functionality that is only available to the owner._
-
-### transferOwnership
-
-```solidity
-function transferOwnership(address newOwner) public virtual
-```
-
-_Transfers ownership of the contract to a new account (`newOwner`).
-Can only be called by the current owner._
 
 ### _transferOwnership
 
@@ -294,6 +329,13 @@ event ReallocationDisabled()
 event ETHWithdrawn(uint256 amount)
 ```
 
+### Closed
+
+```solidity
+event Closed()
+```
+
+inherits ReentrancyGuard:
 inherits Ownable:
 ### OwnershipTransferred
 
@@ -510,6 +552,24 @@ function withdrawETH(uint256 _amount) external
 Withdraws ETH from the registry.
 This function can only be called by admin.
 
+### transferAccount
+
+```solidity
+function transferAccount(address _to, address _from) external
+```
+
+Transfers an account.
+This function can only be called by an account.
+
+### closeAccount
+
+```solidity
+function closeAccount(address _owner) external
+```
+
+Closes an account.
+This function can only be called by an account.
+
 ### receive
 
 ```solidity
@@ -694,6 +754,18 @@ event StrategyVaultAdded(contract IYcStrategy strategy, contract IVaultV2 vault)
 
 ```solidity
 event ETHReceived(address sender, uint256 amount)
+```
+
+### AccountTransfered
+
+```solidity
+event AccountTransfered(address to, address from)
+```
+
+### AccountClosed
+
+```solidity
+event AccountClosed(address owner, contract IYcAccount account)
 ```
 
 inherits AccessControl:
