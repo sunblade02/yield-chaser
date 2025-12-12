@@ -528,7 +528,7 @@ This function can only be called by admin.
 ### reward
 
 ```solidity
-function reward(address _address) external
+function reward(address _address) public
 ```
 
 Transfers 1 YCT to the account.
@@ -555,7 +555,7 @@ This function can only be called by admin.
 ### transferAccount
 
 ```solidity
-function transferAccount(address _to, address _from) external
+function transferAccount(address _from, address _to) external
 ```
 
 Transfers an account.
@@ -569,6 +569,14 @@ function closeAccount(address _owner) external
 
 Closes an account.
 This function can only be called by an account.
+
+### getAccounts
+
+```solidity
+function getAccounts(uint256 _firstResult, uint256 _maxResult) external view returns (contract IYcAccount[])
+```
+
+Returns a batch of valid accounts
 
 ### receive
 
@@ -759,13 +767,19 @@ event ETHReceived(address sender, uint256 amount)
 ### AccountTransfered
 
 ```solidity
-event AccountTransfered(address to, address from)
+event AccountTransfered(address from, address to)
 ```
 
 ### AccountClosed
 
 ```solidity
 event AccountClosed(address owner, contract IYcAccount account)
+```
+
+### RewardEmitted
+
+```solidity
+event RewardEmitted(address owner, uint256 amount)
 ```
 
 inherits AccessControl:

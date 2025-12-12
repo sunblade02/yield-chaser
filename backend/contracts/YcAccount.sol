@@ -179,7 +179,7 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
             capital -= uint64(yield - fee);
         }
 
-        try registry.reward(owner()) {} catch {}
+        registry.reward(owner());
 
         payable(address(registry)).transfer(ethFixedReallocationFee);
 
