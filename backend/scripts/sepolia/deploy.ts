@@ -5,9 +5,13 @@ const { ethers } = await network.connect({
 });
 
 const usdcAdress = "0x361680F6052786187dFEe22355eD18113A8de3DC";
-const botAddress = "0xce044426aa089ec2167f94f54141019e3a0e7063";
+const botAddress = undefined;
 
 async function main(): Promise<void> {
+    if (botAddress == undefined) {
+        throw Error("botAddress undefined");
+    }
+
     const usdc = await ethers.getContractAt("MockUSDC", usdcAdress);
 
     const ethFixedReallocationFee = ethers.parseEther("0.00004");
@@ -21,6 +25,10 @@ async function main(): Promise<void> {
 
     const yctAddress = await registry.yct();
     console.log("YCT was deployed at : " + yctAddress);
+
+    const yct = await ethers.getContractAt("YcToken", yctAddress);
+    const vestingWalletAddress = await yct.teamVestingWallet();
+    console.log("VestingWallet was deployed at : " + vestingWalletAddress);
 
     const managementFeeVault1 = ethers.parseUnits("1", 16); // 1e16 => 1 %
     const performanceFeeVault1 = ethers.parseUnits("10", 16); // 10e16 => 10 %

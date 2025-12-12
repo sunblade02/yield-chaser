@@ -24,6 +24,10 @@ async function main(): Promise<void> {
 
     const yctAddress = await registry.yct();
     console.log("YCT was deployed at : " + yctAddress);
+    const yct = await ethers.getContractAt("YcToken", yctAddress);
+
+    const vestingWalletAddress = await yct.teamVestingWallet();
+    console.log("VestingWallet was deployed at : " + vestingWalletAddress);
 
     const managementFeeVault1 = ethers.parseUnits("1", 16); // 1e16 => 1 %
     const performanceFeeVault1 = ethers.parseUnits("10", 16); // 10e16 => 10 %

@@ -151,7 +151,7 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
     /// @notice Reallocates USDC to the highest performing yield vault according to the strategy.
     /// This function can only be called when account is enabled.
     /// The account pays fees to the registry.
-    /// The account receives 1 YCT.
+    /// The account receives 1 YCT if available.
     /// The sender is refunded for the gas cost.
     function reallocate() external enabled {
         (IVaultV2 vault, uint128 ethFixedReallocationFee) = checkReallocation();
@@ -179,7 +179,7 @@ contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
             capital -= uint64(yield - fee);
         }
 
-        registry.mintYct(owner());
+        try registry.reward(owner()) {} catch {}
 
         payable(address(registry)).transfer(ethFixedReallocationFee);
 

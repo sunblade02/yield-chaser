@@ -300,8 +300,8 @@ describe("YcRegistry", () => {
             expect(await ethers.provider.getBalance(account)).to.be.equal(ethers.parseEther("0.001"));
         });*/
 
-        it("Should mint 1 YCT for the new account's owner", async () => {
-            expect(await yct.totalSupply()).to.be.equal(0);
+        it("Should transfer 1 YCT for the new account's owner", async () => {
+            const balanceYct = await yct.balanceOf(registry);
             expect(await yct.balanceOf(user1)).to.be.equal(0);
 
             await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
@@ -310,7 +310,7 @@ describe("YcRegistry", () => {
 
             const account = await registry.accounts(user1);
 
-            expect(await yct.totalSupply()).to.be.equal(ethers.parseUnits("1", 18));
+            expect(await yct.balanceOf(registry)).to.be.equal(balanceYct - ethers.parseUnits("1", 18));
             expect(await yct.balanceOf(user1)).to.be.equal(ethers.parseUnits("1", 18));
         });
 
