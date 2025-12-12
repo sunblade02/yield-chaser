@@ -154,7 +154,7 @@ function reallocate() external
 Reallocates USDC to the highest performing yield vault according to the strategy.
 This function can only be called when account is enabled.
 The account pays fees to the registry.
-The account receives 1 YCT.
+The account receives 1 YCT if available.
 The sender is refunded for the gas cost.
 
 ### checkReallocation
@@ -469,7 +469,7 @@ function createAccount(contract IYcStrategy _strategy, uint256 _amount, uint32 _
 Creates a new account to the registry.
 Transfers ETH to the account.
 Attempts to Transfer USDC to the highest performing yield vault according to the selected strategy.
-Mints 1 YCT and transfers it to the account.
+Transfers 1 YCT to the account.
 
 ### grantBotRole
 
@@ -525,13 +525,13 @@ function setUsdcYieldFeeRate(uint16 _usdcYieldFeeRate) external
 Set the USDC Yield Fee rate used when a bot reallocate USDC from an account.
 This function can only be called by admin.
 
-### mintYct
+### reward
 
 ```solidity
-function mintYct(address _address) external
+function reward(address _address) external
 ```
 
-Mints 1 YCT and transfers it to the account.
+Transfers 1 YCT to the account.
 This function can only be called by an account.
 
 ### withdrawUSDC
@@ -818,17 +818,8 @@ YcToken : contracts/YcToken.sol
 ### constructor
 
 ```solidity
-constructor() public
+constructor(address _teamAddress) public
 ```
-
-### mint
-
-```solidity
-function mint(address to, uint256 amount) public
-```
-
-Mints an amount of YCT for the specified address.
-This function can only be called by the owner (the registry).
 
 ### _update
 
@@ -1151,53 +1142,6 @@ It only reads from storage if necessary (in case the value is too large to fit i
 
 inherits IERC5267:
 inherits IERC20Permit:
-inherits Ownable:
-### owner
-
-```solidity
-function owner() public view virtual returns (address)
-```
-
-_Returns the address of the current owner._
-
-### _checkOwner
-
-```solidity
-function _checkOwner() internal view virtual
-```
-
-_Throws if the sender is not the owner._
-
-### renounceOwnership
-
-```solidity
-function renounceOwnership() public virtual
-```
-
-_Leaves the contract without owner. It will not be possible to call
-`onlyOwner` functions. Can only be called by the current owner.
-
-NOTE: Renouncing ownership will leave the contract without an owner,
-thereby disabling any functionality that is only available to the owner._
-
-### transferOwnership
-
-```solidity
-function transferOwnership(address newOwner) public virtual
-```
-
-_Transfers ownership of the contract to a new account (`newOwner`).
-Can only be called by the current owner._
-
-### _transferOwnership
-
-```solidity
-function _transferOwnership(address newOwner) internal virtual
-```
-
-_Transfers ownership of the contract to a new account (`newOwner`).
-Internal function without access restriction._
-
 inherits ERC20:
 ### name
 
@@ -1448,13 +1392,6 @@ event EIP712DomainChanged()
 _MAY be emitted to signal that the domain could have changed._
 
 inherits IERC20Permit:
-inherits Ownable:
-### OwnershipTransferred
-
-```solidity
-event OwnershipTransferred(address previousOwner, address newOwner)
-```
-
 inherits ERC20:
 inherits IERC20Errors:
 inherits IERC20Metadata:

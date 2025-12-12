@@ -68,7 +68,7 @@ contract YcRegistry is AccessControl {
 
         usdc = _usdc;
         factory = new YcFactory();
-        yct = new YcToken();
+        yct = new YcToken(msg.sender);
         ethFixedReallocationFee = _ethFixedReallocationFee;
         usdcYieldFeeRate = _usdcYieldFeeRate;
     }
@@ -88,7 +88,7 @@ contract YcRegistry is AccessControl {
     /// @notice Creates a new account to the registry.
     /// Transfers ETH to the account.
     /// Attempts to Transfer USDC to the highest performing yield vault according to the selected strategy.
-    /// Mints 1 YCT and transfers it to the account.
+    /// Transfers 1 YCT to the account.
     function createAccount(IYcStrategy _strategy, uint _amount, uint32 _noReallocationPeriod) payable external returns (IYcAccount) {
         require(allowedStrategies[_strategy], NotAllowedStrategy());
         require(address(accounts[msg.sender]) == address(0), AccountAlreadyExists());
@@ -106,7 +106,7 @@ contract YcRegistry is AccessControl {
             try account.allocate() {} catch {}
         }
 
-        yct.mint(msg.sender, 10**18);
+        try yct.transfer(msg.sender, 10**18) {} catch {}
 
         emit AccountCreated(msg.sender, _strategy, _amount, msg.value);
 
@@ -157,12 +157,10 @@ contract YcRegistry is AccessControl {
         emit UsdcYieldFeeRateSet(_usdcYieldFeeRate, usdcYieldFeeRate);
     }
 
-    /// @notice Mints 1 YCT and transfers it to the account.
+    /// @notice Transfers 1 YCT to the account.
     /// This function can only be called by an account.
-    function mintYct(address _address) external onlyRole(ACCOUNT_ROLE) {
-        require(_address != address(0), InvalidAddress());
-
-        yct.mint(_address, 10**18);
+    function reward(address _address) external onlyRole(ACCOUNT_ROLE) {
+        yct.transfer(_address, 10**18);
     }
 
     /// @notice Withdraws USDC from the registry.
@@ -195,6 +193,7 @@ contract YcRegistry is AccessControl {
     /// @notice Closes an account.
     /// This function can only be called by an account.
     function closeAccount(address _owner) external onlyRole(ACCOUNT_ROLE) {
+        _revokeRole(ACCOUNT_ROLE, msg.sender);
         delete accounts[_owner];
 
         emit AccountClosed(_owner, IYcAccount(msg.sender));
