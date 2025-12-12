@@ -13,6 +13,7 @@
 - [User] Enable bot
 - [User] Disable bot
 - [User] Close account
+- [User] Set no reallocation period
 - [Authorized bot] Update yield data
 - [Bot] Check if an account need reallocation
 - [Bot] Reallocate tokens of an account

@@ -47,10 +47,6 @@ export const useGetAccount = () => {
         }, {
             address: accountAddress ? accountAddress as `0x${string}` : undefined,
             abi: accountContractABI,
-            functionName: "noReallocationPeriod",
-        }, {
-            address: accountAddress ? accountAddress as `0x${string}` : undefined,
-            abi: accountContractABI,
             functionName: "capital",
         }, {
             address: accountAddress ? accountAddress as `0x${string}` : undefined,
@@ -68,10 +64,9 @@ export const useGetAccount = () => {
     const accountRefetch = readContractsData.refetch;
     const currentVaultAddress = readContractsData.data?.[0].result ? readContractsData.data?.[0].result : undefined;
     const strategyAddress = readContractsData.data?.[1].result ? readContractsData.data?.[1].result : undefined;
-    const noReallocationPeriod = readContractsData.data?.[2].result ? readContractsData.data?.[2].result : undefined;
-    const capital = readContractsData.data?.[3].result ? readContractsData.data?.[3].result : undefined;
-    const depositAmount = readContractsData.data?.[4].result ? readContractsData.data?.[4].result : undefined;
-    const result = readContractsData.data?.[5].result as any[] | undefined;
+    const capital = readContractsData.data?.[2].result ? readContractsData.data?.[2].result : undefined;
+    const depositAmount = readContractsData.data?.[3].result ? readContractsData.data?.[3].result : undefined;
+    const result = readContractsData.data?.[4].result as any[] | undefined;
     const [ usdcBalance, assets ] = result ?? [ undefined, undefined ];
     isLoading = isLoading || readContractsData.isLoading;
     isFetched = isFetched && readContractsData.isFetched;
@@ -108,7 +103,6 @@ export const useGetAccount = () => {
         earnedUsdc: earnedUsdc,
         totalUsdc: totalUsdc,
         eth: ethBalance ? Number(ethBalance) : 0,
-        noReallocationPeriod: noReallocationPeriod ? Number(noReallocationPeriod) : 0,
         currentVault: currentVaultAddress ? currentVaultAddress as `0x${string}` : null,
         strategy: strategyAddress ? strategyAddress as `0x${string}` : null,
     };
