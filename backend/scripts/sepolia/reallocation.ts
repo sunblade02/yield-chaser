@@ -20,8 +20,8 @@ async function main(): Promise<void> {
 
             const account = await ethers.getContractAt("YcAccount", accountAddress);
             try {
-                await account.checkReallocation();
-                const tx = await account.reallocate();
+                const data = await account.checkReallocation();
+                const tx = await account.reallocate({ gasLimit: 500000 });
                 await tx.wait();
                 console.log("✅ Reallocation done");
             } catch (error: any) {
