@@ -3,7 +3,7 @@ const ENV = process.env.NEXT_PUBLIC_ENV || "dev";
 let address: `0x${string}` = "0x59b670e9fA9D0A427751Af201D676719a970857b"; // hardhat;
 switch (ENV) {
   case "staging": // sepolia
-    address = "0xCBfa14005ef442f9B3c3cEA517f0af1783C36a38";
+    address = "0x936C20F30aE2D0bE4A4c72266D86B643e36d5882";
     break;
 }
 export const contractAddress = address;
@@ -82,6 +82,11 @@ export const contractABI = [
       "type": "error"
     },
     {
+      "inputs": [],
+      "name": "Overflow",
+      "type": "error"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {
@@ -137,13 +142,13 @@ export const contractABI = [
         {
           "indexed": true,
           "internalType": "address",
-          "name": "to",
+          "name": "from",
           "type": "address"
         },
         {
           "indexed": true,
           "internalType": "address",
-          "name": "from",
+          "name": "to",
           "type": "address"
         }
       ],
@@ -186,6 +191,25 @@ export const contractABI = [
         }
       ],
       "name": "EthFixedReallocationFeeSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "RewardEmitted",
       "type": "event"
     },
     {
@@ -512,6 +536,30 @@ export const contractABI = [
     {
       "inputs": [
         {
+          "internalType": "uint256",
+          "name": "_firstResult",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_maxResult",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAccounts",
+      "outputs": [
+        {
+          "internalType": "contract IYcAccount[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "bytes32",
           "name": "role",
           "type": "bytes32"
@@ -725,12 +773,12 @@ export const contractABI = [
       "inputs": [
         {
           "internalType": "address",
-          "name": "_to",
+          "name": "_from",
           "type": "address"
         },
         {
           "internalType": "address",
-          "name": "_from",
+          "name": "_to",
           "type": "address"
         }
       ],
@@ -783,6 +831,25 @@ export const contractABI = [
           "internalType": "uint16",
           "name": "",
           "type": "uint16"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "users",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
         }
       ],
       "stateMutability": "view",

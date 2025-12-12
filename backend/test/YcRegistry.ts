@@ -74,6 +74,42 @@ let vault2: any;
 
 describe("YcRegistry", () => {
 
+    describe("getAccounts", () => {
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithStrategy());
+
+            const signers = await ethers.getSigners();
+
+            for (let i = 0; i < signers.length; i++) {
+                await usdc.faucet(signers[i], ethers.parseUnits("1000", 6));
+                await usdc.connect(signers[i]).approve(registry, ethers.parseUnits("1000", 6));
+                await registry.connect(signers[i]).createAccount(strategy, ethers.parseUnits("1000", 6), 86400);
+
+                if (i % 3 === 0) {
+                    const accountAddress = await registry.accounts(signers[i]);
+                    const account = await ethers.getContractAt("YcAccount", accountAddress);
+                    await account.connect(signers[i]).close();
+                }
+            }
+        });
+        
+        it("Should returns 6 accounts", async () => {
+            const accounts = await registry.getAccounts(0, 10);
+
+            expect(accounts.length).to.be.equal(6);
+        });
+        
+        it("Should returns 3 accounts", async () => {
+            const accounts = await registry.getAccounts(15, 10);
+
+            expect(accounts.length).to.be.equal(3);
+        });
+        
+        it("Should revert when first result is out of the accounts array", async () => {
+            await expect(registry.getAccounts(20, 10)).to.be.revertedWithCustomError(registry, "Overflow");
+        });
+    });
+
     describe("receive", () => {
         beforeEach(async () => {
             ({ user1, user2, usdc, registry, yct, strategy, vault1, vault2 } = await setupWithoutStrategy());
