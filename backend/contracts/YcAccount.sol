@@ -3,6 +3,7 @@ pragma solidity 0.8.28;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { IVaultV2 } from "./morpho-org/vault-v2/src/interfaces/IVaultV2.sol"; 
 import { IYcAccount } from "./IYcAccount.sol";
 import { YcRegistry } from "./YcRegistry.sol";
@@ -13,7 +14,7 @@ import { IYcStrategy } from "./IYcStrategy.sol";
 /// @notice This smart contract implements a Yield Chaser account. 
 /// This account is owned exclusively by the user who can manage their funds.
 /// The funds were moved on DeFi protocol according to a strategy defined by the user.
-contract YcAccount is IYcAccount, Ownable {
+contract YcAccount is IYcAccount, Ownable, ReentrancyGuard {
 
     //----- ERRORS -----//
 
@@ -28,6 +29,7 @@ contract YcAccount is IYcAccount, Ownable {
     error ReallocationIsDisabled();
     error NoAmount();
     error NotEnoughUSDC();
+    error Disabled();
 
     //----- EVENTS -----//
 
@@ -38,6 +40,7 @@ contract YcAccount is IYcAccount, Ownable {
     event ReallocationEnabled();
     event ReallocationDisabled();
     event ETHWithdrawn(uint amount);
+    event Closed();
 
     //----- STATE VARIABLES -----//
 
@@ -46,16 +49,24 @@ contract YcAccount is IYcAccount, Ownable {
     uint64 public lastReallocation;
     uint32 public noReallocationPeriod;
 
-    // Packing : 64 + 64 + 1 = 129
+    // Packing : 64 + 64 + 1 + 1 = 130
     uint64 public capital;
     uint64 public depositAmount;
     bool public isReallocationEnabled;
+    bool public isEnabled;
 
     YcRegistry public registry;
 
     IYcStrategy public strategy;
 
     IVaultV2 public currentVault;
+
+    //----- MODIFIER -----//
+
+    modifier enabled {
+        require(isEnabled, Disabled());
+        _;
+    }
 
     //----- FUNCTIONS -----//
 
@@ -65,10 +76,12 @@ contract YcAccount is IYcAccount, Ownable {
         strategy = _strategy;
         noReallocationPeriod = _noReallocationPeriod;
         isReallocationEnabled = true;
+        isEnabled = true;
     }
 
     /// @notice Allocates USDC to the highest performing yield vault according to the strategy.
-    function allocate() payable public {
+    /// This function can only be called when account is enabled.
+    function allocate() payable public enabled {
         uint amount = usdc.balanceOf(address(this));
         require(amount > 0, NoUSDC());
 
@@ -112,8 +125,16 @@ contract YcAccount is IYcAccount, Ownable {
             }
 
             if (_all) {
+                delete capital;
+                delete depositAmount;
+
                 _vault.redeem(shares, address(this), address(this));
             } else {
+                if (_usdcAmount > yield) {
+                    depositAmount -= uint64(_usdcAmount - yield);
+                    capital -= uint64(_usdcAmount - yield);
+                }
+
                 _vault.withdraw(usdcAmount, address(this), address(this));
             }
 
@@ -128,11 +149,11 @@ contract YcAccount is IYcAccount, Ownable {
     }
 
     /// @notice Reallocates USDC to the highest performing yield vault according to the strategy.
+    /// This function can only be called when account is enabled.
     /// The account pays fees to the registry.
-    /// The account receives 1 YCT.
+    /// The account receives 1 YCT if available.
     /// The sender is refunded for the gas cost.
-    /// @dev reentrancy attack / DoS Gas limit
-    function reallocate() external {
+    function reallocate() external enabled {
         (IVaultV2 vault, uint128 ethFixedReallocationFee) = checkReallocation();
 
         lastReallocation = uint64(block.timestamp);
@@ -148,20 +169,17 @@ contract YcAccount is IYcAccount, Ownable {
             (yield, fee) = disallocate(disallocationVault, true, 0);
         }
 
-        delete capital;
-        delete depositAmount;
-
         allocate();
 
         if (prevYield > 0) {
             capital -= prevYield;
         }
 
-        if (yield > 0) {
+        if (yield > fee) {
             capital -= uint64(yield - fee);
         }
 
-        registry.mintYct(owner());
+        registry.reward(owner());
 
         payable(address(registry)).transfer(ethFixedReallocationFee);
 
@@ -169,8 +187,9 @@ contract YcAccount is IYcAccount, Ownable {
         payable(msg.sender).transfer(cost);
     }
 
-    /// @notice Checks for reallocation and returns used data
-    function checkReallocation() public view returns (IVaultV2, uint128) {
+    /// @notice Checks for reallocation and returns used data.
+    /// This function can only be called when account is enabled.
+    function checkReallocation() public view enabled returns (IVaultV2, uint128) {
         require(isReallocationEnabled, ReallocationIsDisabled());
 
         uint128 ethFixedReallocationFee = registry.ethFixedReallocationFee();
@@ -185,7 +204,7 @@ contract YcAccount is IYcAccount, Ownable {
         return (vault, ethFixedReallocationFee);
     }
 
-    /// @notice Set the no reallocation period in seconds
+    /// @notice Sets the no reallocation period in seconds.
     /// This function can only be called by the owner.
     function setNoReallocationPeriod(uint32 _noReallocationPeriod) external onlyOwner {
         (noReallocationPeriod, _noReallocationPeriod) = (_noReallocationPeriod, noReallocationPeriod);
@@ -193,7 +212,7 @@ contract YcAccount is IYcAccount, Ownable {
         emit NoReallocationPeriodUpdated(_noReallocationPeriod, noReallocationPeriod);
     }
 
-    /// @notice Enable the reallocation
+    /// @notice Enables the reallocation.
     /// This function can only be called by the owner.
     function enableReallocation() external onlyOwner {
         require(isReallocationEnabled == false, ReallocationAlreadyEnabled());
@@ -215,7 +234,7 @@ contract YcAccount is IYcAccount, Ownable {
 
     /// @notice Withdraws USDC from the account and the current vault and/or ETH.
     /// This function can only be called by the owner.
-    function withdraw(uint _usdcAmount, uint _ethAmount) external onlyOwner {
+    function withdraw(uint _usdcAmount, uint _ethAmount) public onlyOwner nonReentrant {
         require(address(this).balance >= _ethAmount, NotEnoughETH());
         require(_usdcAmount > 0 || _ethAmount > 0, NoAmount());
 
@@ -232,12 +251,7 @@ contract YcAccount is IYcAccount, Ownable {
                 uint usdcAmountFromVault = _usdcAmount - usdcBalance;
                 require(usdcAmountFromVault <= usdcBalanceFromVault, NotEnoughUSDC());
 
-                (uint yield, uint fee) = disallocate(currentVault, usdcAmountFromVault == usdcBalanceFromVault, usdcAmountFromVault);
-
-                if (usdcAmountFromVault > yield) {
-                    depositAmount -= uint64(usdcAmountFromVault - yield);
-                    capital -= uint64(usdcAmountFromVault - yield);
-                }
+                (, uint fee) = disallocate(currentVault, usdcAmountFromVault == usdcBalanceFromVault, usdcAmountFromVault);
 
                 if (fee > 0) {
                     _usdcAmount -= fee;
@@ -249,21 +263,54 @@ contract YcAccount is IYcAccount, Ownable {
     }
 
     /// @notice Gets the USDC balance of the account and the USDC balance in the current vault.
-    function getUsdcBalance() public view returns(uint, uint) {
+    /// This function can only be called when account is enabled.
+    function getUsdcBalance() public view enabled returns(uint, uint) {
         uint usdcBalance = usdc.balanceOf(address(this));
         uint usdcBalanceFromVault;
 
         if (address(currentVault) != address(0)) {
-            uint shares = currentVault.balanceOf(address(this));
-            if (shares > 0) {
-                usdcBalanceFromVault = currentVault.previewRedeem(shares);
-            }
+            try currentVault.balanceOf(address(this)) returns (uint shares) {
+                if (shares > 0) {
+                    try currentVault.previewRedeem(shares) returns (uint vaultBalance) {
+                        usdcBalanceFromVault = vaultBalance;
+                    } catch {}
+                }
+            } catch {}
         }
 
         return (usdcBalance, usdcBalanceFromVault);
     }
 
-    receive() payable external {
+    /// @notice Closes the account and withdraws all USDC from the account and the current vault and/or ETH.
+    /// This function can only be called by the owner.
+    function close() external onlyOwner {
+        (uint usdcBalance, uint usdcBalanceFromVault) = getUsdcBalance();
+        withdraw(usdcBalance + usdcBalanceFromVault, address(this).balance);
+
+        delete usdc;
+        delete strategy;
+        delete noReallocationPeriod;
+        delete lastReallocation;
+        delete isReallocationEnabled;
+        delete isEnabled;
+        delete currentVault;
+
+        registry.closeAccount(msg.sender);
+
+        delete registry;
+
+        renounceOwnership();
+
+        emit Closed();
+    }
+
+    /// @inheritdoc Ownable
+    function transferOwnership(address _newOwner) public override(IYcAccount, Ownable) onlyOwner {
+        super.transferOwnership(_newOwner);
+        registry.transferAccount(msg.sender, _newOwner);
+    }
+
+    receive() payable external enabled {
         emit ETHReceived(msg.sender, msg.value);
     }
 }

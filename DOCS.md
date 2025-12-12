@@ -55,6 +55,12 @@ function withdraw(uint256 _usdcAmount, uint256 _ethAmount) external
 function getUsdcBalance() external view returns (uint256, uint256)
 ```
 
+### transferOwnership
+
+```solidity
+function transferOwnership(address _newOwner) external
+```
+
 ## IYcFactory
 
 ### Contract
@@ -115,6 +121,14 @@ The funds were moved on DeFi protocol according to a strategy defined by the use
 YcAccount : contracts/YcAccount.sol
 
  --- 
+### Modifiers:
+### enabled
+
+```solidity
+modifier enabled()
+```
+
+ --- 
 ### Functions:
 ### constructor
 
@@ -129,6 +143,7 @@ function allocate() public payable
 ```
 
 Allocates USDC to the highest performing yield vault according to the strategy.
+This function can only be called when account is enabled.
 
 ### reallocate
 
@@ -137,11 +152,10 @@ function reallocate() external
 ```
 
 Reallocates USDC to the highest performing yield vault according to the strategy.
+This function can only be called when account is enabled.
 The account pays fees to the registry.
-The account receives 1 YCT.
+The account receives 1 YCT if available.
 The sender is refunded for the gas cost.
-
-_reentrancy attack / DoS Gas limit_
 
 ### checkReallocation
 
@@ -149,7 +163,8 @@ _reentrancy attack / DoS Gas limit_
 function checkReallocation() public view returns (contract IVaultV2, uint128)
 ```
 
-Checks for reallocation and returns used data
+Checks for reallocation and returns used data.
+This function can only be called when account is enabled.
 
 ### setNoReallocationPeriod
 
@@ -157,7 +172,7 @@ Checks for reallocation and returns used data
 function setNoReallocationPeriod(uint32 _noReallocationPeriod) external
 ```
 
-Set the no reallocation period in seconds
+Sets the no reallocation period in seconds.
 This function can only be called by the owner.
 
 ### enableReallocation
@@ -166,7 +181,7 @@ This function can only be called by the owner.
 function enableReallocation() external
 ```
 
-Enable the reallocation
+Enables the reallocation.
 This function can only be called by the owner.
 
 ### disableReallocation
@@ -181,7 +196,7 @@ This function can only be called by the owner.
 ### withdraw
 
 ```solidity
-function withdraw(uint256 _usdcAmount, uint256 _ethAmount) external
+function withdraw(uint256 _usdcAmount, uint256 _ethAmount) public
 ```
 
 Withdraws USDC from the account and the current vault and/or ETH.
@@ -194,12 +209,41 @@ function getUsdcBalance() public view returns (uint256, uint256)
 ```
 
 Gets the USDC balance of the account and the USDC balance in the current vault.
+This function can only be called when account is enabled.
+
+### close
+
+```solidity
+function close() external
+```
+
+Closes the account and withdraws all USDC from the account and the current vault and/or ETH.
+This function can only be called by the owner.
+
+### transferOwnership
+
+```solidity
+function transferOwnership(address _newOwner) public
+```
+
+_Transfers ownership of the contract to a new account (`newOwner`).
+Can only be called by the current owner._
 
 ### receive
 
 ```solidity
 receive() external payable
 ```
+
+inherits ReentrancyGuard:
+### _reentrancyGuardEntered
+
+```solidity
+function _reentrancyGuardEntered() internal view returns (bool)
+```
+
+_Returns true if the reentrancy guard is currently set to "entered", which indicates there is a
+`nonReentrant` function in the call stack._
 
 inherits Ownable:
 ### owner
@@ -229,15 +273,6 @@ _Leaves the contract without owner. It will not be possible to call
 
 NOTE: Renouncing ownership will leave the contract without an owner,
 thereby disabling any functionality that is only available to the owner._
-
-### transferOwnership
-
-```solidity
-function transferOwnership(address newOwner) public virtual
-```
-
-_Transfers ownership of the contract to a new account (`newOwner`).
-Can only be called by the current owner._
 
 ### _transferOwnership
 
@@ -294,6 +329,13 @@ event ReallocationDisabled()
 event ETHWithdrawn(uint256 amount)
 ```
 
+### Closed
+
+```solidity
+event Closed()
+```
+
+inherits ReentrancyGuard:
 inherits Ownable:
 ### OwnershipTransferred
 
@@ -427,7 +469,7 @@ function createAccount(contract IYcStrategy _strategy, uint256 _amount, uint32 _
 Creates a new account to the registry.
 Transfers ETH to the account.
 Attempts to Transfer USDC to the highest performing yield vault according to the selected strategy.
-Mints 1 YCT and transfers it to the account.
+Transfers 1 YCT to the account.
 
 ### grantBotRole
 
@@ -483,13 +525,13 @@ function setUsdcYieldFeeRate(uint16 _usdcYieldFeeRate) external
 Set the USDC Yield Fee rate used when a bot reallocate USDC from an account.
 This function can only be called by admin.
 
-### mintYct
+### reward
 
 ```solidity
-function mintYct(address _address) external
+function reward(address _address) public
 ```
 
-Mints 1 YCT and transfers it to the account.
+Transfers 1 YCT to the account.
 This function can only be called by an account.
 
 ### withdrawUSDC
@@ -509,6 +551,32 @@ function withdrawETH(uint256 _amount) external
 
 Withdraws ETH from the registry.
 This function can only be called by admin.
+
+### transferAccount
+
+```solidity
+function transferAccount(address _from, address _to) external
+```
+
+Transfers an account.
+This function can only be called by an account.
+
+### closeAccount
+
+```solidity
+function closeAccount(address _owner) external
+```
+
+Closes an account.
+This function can only be called by an account.
+
+### getAccounts
+
+```solidity
+function getAccounts(uint256 _firstResult, uint256 _maxResult) external view returns (contract IYcAccount[])
+```
+
+Returns a batch of valid accounts
 
 ### receive
 
@@ -696,6 +764,24 @@ event StrategyVaultAdded(contract IYcStrategy strategy, contract IVaultV2 vault)
 event ETHReceived(address sender, uint256 amount)
 ```
 
+### AccountTransfered
+
+```solidity
+event AccountTransfered(address from, address to)
+```
+
+### AccountClosed
+
+```solidity
+event AccountClosed(address owner, contract IYcAccount account)
+```
+
+### RewardEmitted
+
+```solidity
+event RewardEmitted(address owner, uint256 amount)
+```
+
 inherits AccessControl:
 inherits ERC165:
 inherits IERC165:
@@ -746,17 +832,8 @@ YcToken : contracts/YcToken.sol
 ### constructor
 
 ```solidity
-constructor() public
+constructor(address _teamAddress) public
 ```
-
-### mint
-
-```solidity
-function mint(address to, uint256 amount) public
-```
-
-Mints an amount of YCT for the specified address.
-This function can only be called by the owner (the registry).
 
 ### _update
 
@@ -1079,53 +1156,6 @@ It only reads from storage if necessary (in case the value is too large to fit i
 
 inherits IERC5267:
 inherits IERC20Permit:
-inherits Ownable:
-### owner
-
-```solidity
-function owner() public view virtual returns (address)
-```
-
-_Returns the address of the current owner._
-
-### _checkOwner
-
-```solidity
-function _checkOwner() internal view virtual
-```
-
-_Throws if the sender is not the owner._
-
-### renounceOwnership
-
-```solidity
-function renounceOwnership() public virtual
-```
-
-_Leaves the contract without owner. It will not be possible to call
-`onlyOwner` functions. Can only be called by the current owner.
-
-NOTE: Renouncing ownership will leave the contract without an owner,
-thereby disabling any functionality that is only available to the owner._
-
-### transferOwnership
-
-```solidity
-function transferOwnership(address newOwner) public virtual
-```
-
-_Transfers ownership of the contract to a new account (`newOwner`).
-Can only be called by the current owner._
-
-### _transferOwnership
-
-```solidity
-function _transferOwnership(address newOwner) internal virtual
-```
-
-_Transfers ownership of the contract to a new account (`newOwner`).
-Internal function without access restriction._
-
 inherits ERC20:
 ### name
 
@@ -1376,13 +1406,6 @@ event EIP712DomainChanged()
 _MAY be emitted to signal that the domain could have changed._
 
 inherits IERC20Permit:
-inherits Ownable:
-### OwnershipTransferred
-
-```solidity
-event OwnershipTransferred(address previousOwner, address newOwner)
-```
-
 inherits ERC20:
 inherits IERC20Errors:
 inherits IERC20Metadata:

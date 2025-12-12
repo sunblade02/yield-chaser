@@ -108,6 +108,7 @@ export const YcAccountProvider = ({
                     parseAbiItem("event ReallocationEnabled()"),
                     parseAbiItem("event ReallocationDisabled()"),
                     parseAbiItem("event ETHWithdrawn(uint amount)"),
+                    parseAbiItem("event NoReallocationPeriodUpdated(uint32 oldNoReallocationPeriod, uint32 newNoReallocationPeriod)"),
                 ],
                 fromBlock: deploymentBlock,
                 toBlock: 'latest'

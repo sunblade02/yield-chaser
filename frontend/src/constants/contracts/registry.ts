@@ -3,7 +3,7 @@ const ENV = process.env.NEXT_PUBLIC_ENV || "dev";
 let address: `0x${string}` = "0x59b670e9fA9D0A427751Af201D676719a970857b"; // hardhat;
 switch (ENV) {
   case "staging": // sepolia
-    address = "0xCBfa14005ef442f9B3c3cEA517f0af1783C36a38";
+    address = "0x936C20F30aE2D0bE4A4c72266D86B643e36d5882";
     break;
 }
 export const contractAddress = address;
@@ -63,6 +63,16 @@ export const contractABI = [
     },
     {
       "inputs": [],
+      "name": "InvalidAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NoAmount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "NotAllowedStrategy",
       "type": "error"
     },
@@ -70,6 +80,30 @@ export const contractABI = [
       "inputs": [],
       "name": "NotStrategyOwner",
       "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "Overflow",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "contract IYcAccount",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "AccountClosed",
+      "type": "event"
     },
     {
       "anonymous": false,
@@ -100,6 +134,25 @@ export const contractABI = [
         }
       ],
       "name": "AccountCreated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        }
+      ],
+      "name": "AccountTransfered",
       "type": "event"
     },
     {
@@ -138,6 +191,25 @@ export const contractABI = [
         }
       ],
       "name": "EthFixedReallocationFeeSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "RewardEmitted",
       "type": "event"
     },
     {
@@ -286,25 +358,6 @@ export const contractABI = [
       "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "YctMinted",
-      "type": "event"
-    },
-    {
       "inputs": [],
       "name": "ACCOUNT_ROLE",
       "outputs": [
@@ -415,6 +468,19 @@ export const contractABI = [
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "closeAccount",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "contract IYcStrategy",
           "name": "_strategy",
           "type": "address"
@@ -462,6 +528,30 @@ export const contractABI = [
           "internalType": "contract IYcFactory",
           "name": "",
           "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_firstResult",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_maxResult",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAccounts",
+      "outputs": [
+        {
+          "internalType": "contract IYcAccount[]",
+          "name": "",
+          "type": "address[]"
         }
       ],
       "stateMutability": "view",
@@ -548,13 +638,6 @@ export const contractABI = [
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "mintYct",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "inputs": [
         {
           "internalType": "bytes32",
@@ -605,6 +688,19 @@ export const contractABI = [
         }
       ],
       "name": "revokeRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_address",
+          "type": "address"
+        }
+      ],
+      "name": "reward",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -676,6 +772,24 @@ export const contractABI = [
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "_from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_to",
+          "type": "address"
+        }
+      ],
+      "name": "transferAccount",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "contract IYcStrategy",
           "name": "_strategy",
           "type": "address"
@@ -720,6 +834,51 @@ export const contractABI = [
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "users",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdrawETH",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdrawUSDC",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {

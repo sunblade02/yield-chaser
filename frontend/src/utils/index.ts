@@ -8,3 +8,22 @@ export function readableNumber(balance: any, decimals: number, maximumFractionDi
     balance = balance ? Number(balance) : 0;
     return (balance / 10**decimals).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: maximumFractionDigits ?? decimals })
 }
+
+export function readableTimestamp(timestamp: number, singular?: boolean) {
+    let units = timestamp / 86400;
+    let timeUnit = "day";
+
+    if (units % 7 === 0) {
+        units /= 7;
+        timeUnit = "week";
+    }
+
+    if (!singular || units > 1) {
+        timeUnit += "s";
+    }
+
+    return {
+        units,
+        timeUnit,
+    };
+}

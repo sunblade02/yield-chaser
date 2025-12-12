@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ZeroAddress } from "ethers";
 import { network } from "hardhat";
+import fc from "fast-check";
 
 const { ethers, networkHelpers } = await network.connect();
 
@@ -22,7 +23,7 @@ async function setupWithoutVault() {
     await strategy.transferOwnership(registry);
     await registry.addStrategy(strategy);
 
-    await registry.createAccount(strategy, 0, 86400)
+    await registry.createAccount(strategy, 0, 86400);
     const accountAddress = await registry.accounts(user1);
     const account = await ethers.getContractAt("YcAccount", accountAddress);
 
@@ -80,6 +81,81 @@ let ethFixedReallocationFee: any;
 let usdcYieldFeeRate: any;
 
 describe("YcAccount", () => {
+
+    describe("close", () => {
+
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, strategy, account } = await setupWithAllocation());
+
+            await user1.sendTransaction({
+                to: account,
+                value: ethers.parseEther("1")
+            });
+        });
+
+        it("Should close", async () => {
+            expect(await registry.accounts(user1)).to.be.equal(account);
+            expect(await account.owner()).to.be.equal(user1);
+            expect(await account.isEnabled()).to.be.equal(true);
+            expect(await usdc.balanceOf(user1)).to.be.equal(ethers.parseUnits("10000", 6));
+            const ethBalance0 = await ethers.provider.getBalance(user1);
+
+            const tx = await account.close();
+            const receipt = await tx.wait();
+            const gasUsed: bigint = receipt.gasUsed;
+            const gasPrice: bigint = tx.gasPrice || receipt.effectiveGasPrice;
+            const cost: bigint = gasUsed * gasPrice;
+
+            expect(await registry.accounts(user1)).to.be.equal(ZeroAddress);
+            expect(await account.owner()).to.be.equal(ZeroAddress);
+            expect(await ethers.provider.getBalance(user1)).to.be.equal(ethBalance0 + ethers.parseEther("1") - cost);
+            expect(await account.isEnabled()).to.be.equal(false);
+            expect(await usdc.balanceOf(user1)).to.be.equal(ethers.parseUnits("15000", 6));
+        });
+
+        it("Should emit a Closed event", async () => {
+            await expect(account.close()).to.emit(account, "Closed");
+        });
+
+        it("Should emit a AccountClosed event", async () => {
+            await expect(account.close()).to.emit(registry, "AccountClosed").withArgs(user1, account);
+        });
+
+        it("Only owner could close", async () => {
+            await expect(account.connect(user2).close()).to.be.revertedWithCustomError(account, "OwnableUnauthorizedAccount");
+        });
+    });
+
+    describe("transferOwnership", () => {
+
+        beforeEach(async () => {
+            ({ user1, user2, usdc, registry, strategy, account } = await setupWithAllocation());
+        });
+
+        it("Should transfer ownership", async () => {
+            expect(await registry.accounts(user1)).to.be.equal(account);
+            expect(await account.owner()).to.be.equal(user1);
+
+            await account.transferOwnership(user2);
+
+            expect(await registry.accounts(user2)).to.be.equal(account);
+            expect(await account.owner()).to.be.equal(user2);
+        });
+
+        it("Should emit a AccountTransfered event", async () => {
+            await expect(account.transferOwnership(user2)).to.emit(registry, "AccountTransfered").withArgs(user1, user2);
+        });
+
+        it("Only owner transfer ownership", async () => {
+            await expect(account.connect(user2).transferOwnership(user2)).to.be.revertedWithCustomError(account, "OwnableUnauthorizedAccount");
+        });
+
+        it("Should revert when the new onwer has already an account", async () => {
+            await registry.connect(user2).createAccount(strategy, 0, 86400);
+
+            await expect(account.transferOwnership(user2)).to.be.revertedWithCustomError(registry, "AccountAlreadyExists");
+        });
+    });
 
     describe("disableReallocation", () => {
 
@@ -166,6 +242,17 @@ describe("YcAccount", () => {
         });
     });
 
+    describe("getUsdcBalance", () => {
+        
+        it("Should revert when the account is disabled", async () => {
+            ({ user1, user2, usdc, registry, strategy, account } = await setupWithoutVault());
+
+            await account.close();
+
+            await expect(account.getUsdcBalance()).to.be.revertedWithCustomError(account, "Disabled");
+        });
+    });
+
     describe("allocate", () => {
 
         it("Should deposit USDC to the best vault", async () => {
@@ -198,6 +285,40 @@ describe("YcAccount", () => {
 
             await expect(account.allocate()).to.be.revertedWithCustomError(account, "NoVault");
         });
+
+        it("Should revert when the account is disabled", async () => {
+            ({ user1, user2, usdc, registry, strategy, account } = await setupWithVaults());
+
+            await account.close();
+
+            await expect(account.allocate()).to.be.revertedWithCustomError(account, "Disabled");
+        });
+
+        it("Fuzzing test", async () => {
+            ({ user1, user2, usdc, yct, registry, strategy, account, vault1, vault2 } = await setupWithVaults());
+
+            await fc.assert(
+                fc.asyncProperty(
+                    fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                    async (amount: bigint) => {
+                        await usdc.faucet(account, amount);
+                        
+                        const balance = await usdc.balanceOf(account);
+                        if (balance === 0n) {
+                            await expect(account.allocate()).to.be.revertedWithCustomError(account, "NoUSDC");
+                        } else {
+                            const depositAmount = await account.depositAmount();
+                            const capital = await account.capital();
+
+                            await account.allocate();
+
+                            expect(await account.depositAmount()).to.be.equal(depositAmount + balance);
+                            expect(await account.capital()).to.be.equal(capital + balance);
+                        }
+                    }
+                )
+            );
+        });
     });
 
     describe("receive", () => {
@@ -211,6 +332,17 @@ describe("YcAccount", () => {
             });
 
             expect(tx).to.emit(account, "ETHReceived").withArgs(user1, ethers.parseEther("1"));
+        });
+        
+        it("Should revert when the account is disabled", async () => {
+            ({ user1, user2, usdc, registry, strategy, account } = await setupWithoutVault());
+
+            await account.close();
+            
+            await expect(user1.sendTransaction({
+                to: account,
+                value: ethers.parseEther("1")
+            })).to.be.revertedWithCustomError(account, "Disabled");
         });
     });
 
@@ -298,6 +430,28 @@ describe("YcAccount", () => {
             expect(vault).to.be.equal(vault1);
             expect(ethFixedReallocationFee).to.be.equal(ethers.parseEther("0.00004"));
         });
+
+        it("Should revert when the account is disabled", async () => {
+            await user1.sendTransaction({
+                to: account,
+                value: ethers.parseEther("1")
+            });
+
+            // 1 day + 1 second
+            await networkHelpers.time.increase(86401);
+
+            await registry.updateStrategyVaultsNetAPY(strategy, [
+                vault1,
+                vault2
+            ], [
+                85e3, // 8,5 % net APY
+                8e4,  // 8 % net APY
+            ]);
+
+            await account.close();
+
+            await expect(account.checkReallocation()).to.be.revertedWithCustomError(account, "Disabled");
+        });
     })
 
     describe("reallocate", () => {
@@ -357,6 +511,28 @@ describe("YcAccount", () => {
             expect(await strategy.getBestVault()).to.be.equal(vault2);
 
             await expect(account.reallocate()).to.be.revertedWithCustomError(account, "NoVaultChange");
+        });
+
+        it("Should revert when the account is disabled", async () => {
+            await user1.sendTransaction({
+                to: account,
+                value: ethers.parseEther("1")
+            });
+
+            // 1 day + 1 second
+            await networkHelpers.time.increase(86401);
+
+            await registry.updateStrategyVaultsNetAPY(strategy, [
+                vault1,
+                vault2
+            ], [
+                85e3, // 8,5 % net APY
+                8e4,  // 8 % net APY
+            ]);
+
+            await account.close();
+
+            await expect(account.reallocate()).to.be.revertedWithCustomError(account, "Disabled");
         });
 
         describe("No revert", () => {
@@ -436,33 +612,33 @@ describe("YcAccount", () => {
                 await expect(account.reallocate()).to.emit(account, "USDCDisallocated").withArgs(ethers.parseUnits("5000", 6), 0, vault2);
             });
 
-            it("Should not change capital", async () => {
-                expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
-
-                await vault2.incAssets(ethers.parseUnits("300", 6));
-                await account.reallocate();
-
-                expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
+            it("Fuzzing test", async () => {
+                await account.setNoReallocationPeriod(0);
 
                 let netAPYs = [
-                    8e4,  // 8 % net APY
                     85e3, // 8,5 % net APY
+                    8e4,  // 8 % net APY
                 ];
-                 
-                for (let i = 0; i < 10; i++) {
-                    await registry.updateStrategyVaultsNetAPY(strategy, [
-                        vault1,
-                        vault2
-                    ], netAPYs);
-                    netAPYs = netAPYs.reverse();
-                    let assets = 100 + Math.floor(Math.random() * 900);
-                    await vault1.incAssets(ethers.parseUnits(assets.toString(), 6));
-                    // 1 day + 1 second
-                    await networkHelpers.time.increase(86401);
-                    await account.reallocate();
 
-                    expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
-                }
+                await fc.assert(
+                    fc.asyncProperty(
+                        fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                        fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                        async (incAmountVault1: bigint, incAmountVault2: bigint) => {
+                            await registry.updateStrategyVaultsNetAPY(strategy, [
+                                vault1,
+                                vault2
+                            ], netAPYs);
+                            netAPYs = netAPYs.reverse();
+
+                            await vault1.incAssets(incAmountVault1);
+                            await vault2.incAssets(incAmountVault2);
+                            await account.reallocate();
+
+                            expect(await account.capital()).to.be.equal(ethers.parseUnits("5000", 6));
+                        }
+                    )
+                );
             });
         })
     })
@@ -548,6 +724,33 @@ describe("YcAccount", () => {
 
         it("Should revert when the account has not enough USDC", async () => {
             await expect(account.withdraw(ethers.parseUnits("10000", 6), ethers.parseEther("1"))).to.be.revertedWithCustomError(account, "NotEnoughUSDC");
+        });
+
+        it("Fuzzing test", async () => {
+            await usdc.faucet(account, 10_000_000_000_000_000_000n);
+            await account.allocate();
+
+            await user1.sendTransaction({
+                to: account,
+                value: ethers.parseEther("9000")
+            });
+
+            await fc.assert(
+                fc.asyncProperty(
+                    fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                    fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                    fc.bigInt({ min: 0n, max: 100_000_000_000_000_000n }),
+                    async (incAssets: bigint, usdcAmount: bigint, ethAmount: bigint) => {
+                        if (usdcAmount === 0n && ethAmount === 0n) {
+                            await expect(account.withdraw(usdcAmount, ethAmount)).to.be.revertedWithCustomError(account, "NoAmount");
+                        } else {
+                            await vault2.incAssets(incAssets);
+
+                            await account.withdraw(usdcAmount, ethAmount);
+                        }
+                    }
+                )
+            );
         });
     });
 });

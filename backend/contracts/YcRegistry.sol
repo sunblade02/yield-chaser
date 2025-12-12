@@ -24,6 +24,7 @@ contract YcRegistry is AccessControl {
     error ETHTransferFailed();
     error NoAmount();
     error InvalidAddress();
+    error Overflow();
 
     //----- EVENTS -----//
 
@@ -34,6 +35,9 @@ contract YcRegistry is AccessControl {
     event UsdcYieldFeeRateSet(uint16 oldUsdcYieldFeeRate, uint16 newUsdcYieldFeeRate);
     event StrategyVaultAdded(IYcStrategy strategy, IVaultV2 vault);
     event ETHReceived(address sender, uint amount);
+    event AccountTransfered(address indexed from, address indexed to);
+    event AccountClosed(address indexed owner, IYcAccount account);
+    event RewardEmitted(address indexed owner, uint amount);
 
     //----- STATE VARIABLES -----//
 
@@ -49,6 +53,8 @@ contract YcRegistry is AccessControl {
 
     /// @dev Stores the association between an user address and his account.
     mapping(address => IYcAccount) public accounts;
+
+    address[] public users;
 
     IYcStrategy[] public strategies;
 
@@ -66,7 +72,7 @@ contract YcRegistry is AccessControl {
 
         usdc = _usdc;
         factory = new YcFactory();
-        yct = new YcToken();
+        yct = new YcToken(msg.sender);
         ethFixedReallocationFee = _ethFixedReallocationFee;
         usdcYieldFeeRate = _usdcYieldFeeRate;
     }
@@ -86,18 +92,18 @@ contract YcRegistry is AccessControl {
     /// @notice Creates a new account to the registry.
     /// Transfers ETH to the account.
     /// Attempts to Transfer USDC to the highest performing yield vault according to the selected strategy.
-    /// Mints 1 YCT and transfers it to the account.
+    /// Transfers 1 YCT to the account.
     function createAccount(IYcStrategy _strategy, uint _amount, uint32 _noReallocationPeriod) payable external returns (IYcAccount) {
         require(allowedStrategies[_strategy], NotAllowedStrategy());
         require(address(accounts[msg.sender]) == address(0), AccountAlreadyExists());
         
         IYcAccount account = factory.createAccount(usdc, _strategy, msg.sender, _noReallocationPeriod);
+        users.push(msg.sender);
         accounts[msg.sender] = account;
         _grantRole(ACCOUNT_ROLE, address(account));
 
         if (msg.value > 0) {
-            (bool success, ) = address(account).call{value: msg.value}("");
-            require(success, ETHTransferFailed());
+            payable(address(account)).transfer(msg.value);
         }
 
         if (_amount > 0) {
@@ -105,7 +111,7 @@ contract YcRegistry is AccessControl {
             try account.allocate() {} catch {}
         }
 
-        yct.mint(msg.sender, 10**18);
+        _reward(msg.sender);
 
         emit AccountCreated(msg.sender, _strategy, _amount, msg.value);
 
@@ -156,12 +162,18 @@ contract YcRegistry is AccessControl {
         emit UsdcYieldFeeRateSet(_usdcYieldFeeRate, usdcYieldFeeRate);
     }
 
-    /// @notice Mints 1 YCT and transfers it to the account.
+    /// @notice Transfers 1 YCT to the account.
     /// This function can only be called by an account.
-    function mintYct(address _address) external onlyRole(ACCOUNT_ROLE) {
-        require(_address != address(0), InvalidAddress());
+    function reward(address _address) public onlyRole(ACCOUNT_ROLE) {
+        _reward(_address);
+    }
 
-        yct.mint(_address, 10**18);
+    /// @notice Transfers 1 YCT to the account.
+    function _reward(address _address) private {
+        uint amount = 10**18;
+        try yct.transfer(_address, amount) {
+            emit RewardEmitted(_address, amount);
+        } catch {}
     }
 
     /// @notice Withdraws USDC from the registry.
@@ -178,6 +190,56 @@ contract YcRegistry is AccessControl {
         require(_amount > 0, NoAmount());
 
         payable(msg.sender).transfer(_amount);
+    }
+
+    /// @notice Transfers an account.
+    /// This function can only be called by an account.
+    function transferAccount(address _from, address _to) external onlyRole(ACCOUNT_ROLE) {
+        require(address(accounts[_to]) == address(0), AccountAlreadyExists());
+
+        delete accounts[_from];
+        users.push(_to);
+        accounts[_to] = IYcAccount(msg.sender);
+
+        emit AccountTransfered(_from, _to);
+    }
+
+    /// @notice Closes an account.
+    /// This function can only be called by an account.
+    function closeAccount(address _owner) external onlyRole(ACCOUNT_ROLE) {
+        _revokeRole(ACCOUNT_ROLE, msg.sender);
+        delete accounts[_owner];
+
+        emit AccountClosed(_owner, IYcAccount(msg.sender));
+    }
+
+    /// @notice Returns a batch of valid accounts
+    function getAccounts(uint _firstResult, uint _maxResult) external view returns (IYcAccount[] memory) {
+        require(_firstResult < users.length, Overflow());
+
+        uint max = _firstResult + _maxResult;
+        if (max > users.length) {
+            max = users.length;
+        }
+
+        uint count;
+        for (uint i = _firstResult; i < max; i++) {
+            if (address(accounts[users[i]]) != address(0)) {
+                count++;
+            }
+        }
+
+        IYcAccount[] memory validAccounts = new IYcAccount[](count);
+        
+        uint j;
+        for (uint i = _firstResult; i < max; i++) {
+            IYcAccount account = accounts[users[i]];
+            if (address(account) != address(0)) {
+                validAccounts[j++] = account;
+            }
+        }
+
+        return validAccounts;
     }
 
     receive() payable external {

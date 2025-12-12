@@ -4,6 +4,7 @@ import { ButtonGroup } from "@/components/ui/button-group"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Spinner } from "@/components/ui/spinner"
+import { useNoReallocationPeriod } from "@/hooks/account/use-no-reallocation-period"
 import { useSetNoReallocationPeriod } from "@/hooks/account/use-set-no-reallocation-period"
 import { useYcAccount } from "@/provider/yc-account-provider"
 import { AlertCircleIcon, CheckCircle2Icon } from "lucide-react"
@@ -16,11 +17,13 @@ const SetNoReallocationPeriod = () => {
     const [ period, setPeriod ] = useState(0);
     const [ showSuccess, setShowSuccess ] = useState(false);
 
+    const { data: noReallocationPeriod } = useNoReallocationPeriod(account?.address);
+
     useEffect(() => {
-        if (account) {
-            setPeriod(account.noReallocationPeriod);
+        if (noReallocationPeriod) {
+            setPeriod(Number(noReallocationPeriod));
         }
-    }, [account]);
+    }, [noReallocationPeriod]);
 
     const {isLoading, isSuccess, error, setNoReallocationPeriod} = useSetNoReallocationPeriod();
 
