@@ -72,7 +72,7 @@ const Step3 = ({
     let bestVaultName = "";
     if (strategy.bestVaultIndex) {
         bestVaultName = strategy.vaults[strategy.bestVaultIndex].name as string;
-        const netBenefit = (usdcAmount / 10**6) * Number(strategy.vaults[strategy.bestVaultIndex].netAPY) / 10**4 * 0.01;
+        const netBenefit = (usdcAmount / 10**6) * Number(strategy.vaults[strategy.bestVaultIndex].netAPY) / 10**4;
         readableNetBenefit = readableNumber(netBenefit, 2);
     }
 
