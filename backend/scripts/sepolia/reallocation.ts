@@ -4,7 +4,7 @@ const { ethers } = await network.connect({
     network: "sepolia",
 });
 
-const registryAddress = "0x936C20F30aE2D0bE4A4c72266D86B643e36d5882";
+const registryAddress = "0xe110932564F63BC8B4803f2414FEe24BBA76887F";
 
 async function main(): Promise<void> {
     const registry = await ethers.getContractAt("YcRegistry", registryAddress);
@@ -13,7 +13,6 @@ async function main(): Promise<void> {
     let max = 500;
     while (true) {
         const accounts = await registry.getAccounts(i, max);
-        console.log(accounts);
 
         for (let j = 0; j < accounts.length; j++) {
             const accountAddress = accounts[j];

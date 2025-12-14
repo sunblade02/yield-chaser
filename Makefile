@@ -44,4 +44,4 @@ deploy-sepolia:
 
 verify-sepolia:
 	docker exec -w /app/backend -ti yield-chaser-dev \
-		npx hardhat verify --network sepolia 0x936C20F30aE2D0bE4A4c72266D86B643e36d5882 0x361680F6052786187dFEe22355eD18113A8de3DC 40000000000000 5000
+		npx hardhat verify --network sepolia 0xe110932564F63BC8B4803f2414FEe24BBA76887F 0x361680F6052786187dFEe22355eD18113A8de3DC 40000000000000 5000
