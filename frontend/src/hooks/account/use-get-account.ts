@@ -2,7 +2,8 @@ import { contractABI as accountContractABI } from "@/constants/contracts/account
 import { contractAddress as registryContractAddress, contractABI as registryContractABI } from "@/constants/contracts/registry";
 import { useBalance, useReadContract, useReadContracts } from "wagmi";
 import { AccountType } from "@/types/account-type";
-import { useGetAccountAddress } from "../registry/use-get-account-address";
+import { useGetAccount as registryUseGetAccount } from "../registry/use-get-account";
+import { zeroAddress } from "viem";
 
 export const useGetAccount = () => {
     let isLoading = false;
@@ -11,9 +12,13 @@ export const useGetAccount = () => {
     let isError = true;
     const errors = [];
 
-    let readContractData = useGetAccountAddress();
+    let readContractData = registryUseGetAccount();
     const getAccountRefetch = readContractData.refetch;
-    const accountAddress = readContractData.data;
+    const enabled = (readContractData.data as any)?.[1];
+    let accountAddress = (readContractData.data as any)?.[0] ? (readContractData.data as any)?.[0] : undefined;
+    if (enabled === false) {
+        accountAddress = zeroAddress;
+    }
     isLoading = isLoading || readContractData.isLoading;
     isFetched = isFetched && readContractData.isFetched;
     isSuccess = isSuccess && readContractData.isSuccess;

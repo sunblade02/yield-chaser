@@ -6,6 +6,7 @@ import { VaultType } from "@/types/vault-type";
 import { useReadContracts } from "wagmi";
 
 export function useGetStrategy(strategyAddress:  `0x${string}` | undefined) {
+    console.log(strategyAddress);
     const { data: strategyData, isSuccess: strategyDataIsSuccess, isLoading: strategyDataIsLoading } = useReadContracts({
         contracts: [
             {

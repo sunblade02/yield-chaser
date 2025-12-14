@@ -3,7 +3,7 @@ const ENV = process.env.NEXT_PUBLIC_ENV || "dev";
 let address: `0x${string}` = "0x59b670e9fA9D0A427751Af201D676719a970857b"; // hardhat;
 switch (ENV) {
   case "staging": // sepolia
-    address = "0x936C20F30aE2D0bE4A4c72266D86B643e36d5882";
+    address = "0xe110932564F63BC8B4803f2414FEe24BBA76887F";
     break;
 }
 export const contractAddress = address;
@@ -408,8 +408,13 @@ export const contractABI = [
       "outputs": [
         {
           "internalType": "contract IYcAccount",
-          "name": "",
+          "name": "account",
           "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "enabled",
+          "type": "bool"
         }
       ],
       "stateMutability": "view",

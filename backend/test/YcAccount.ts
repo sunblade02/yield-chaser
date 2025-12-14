@@ -24,7 +24,7 @@ async function setupWithoutVault() {
     await registry.addStrategy(strategy);
 
     await registry.createAccount(strategy, 0, 86400);
-    const accountAddress = await registry.accounts(user1);
+    const [ accountAddress ] = await registry.accounts(user1);
     const account = await ethers.getContractAt("YcAccount", accountAddress);
 
     await usdc.faucet(account, 5_000_000_000);
@@ -94,7 +94,9 @@ describe("YcAccount", () => {
         });
 
         it("Should close", async () => {
-            expect(await registry.accounts(user1)).to.be.equal(account);
+            const [ account0, enabled0 ] = await registry.accounts(user1);
+            expect(account0).to.be.equal(account);
+            expect(enabled0).to.be.equal(true);
             expect(await account.owner()).to.be.equal(user1);
             expect(await account.isEnabled()).to.be.equal(true);
             expect(await usdc.balanceOf(user1)).to.be.equal(ethers.parseUnits("10000", 6));
@@ -106,7 +108,9 @@ describe("YcAccount", () => {
             const gasPrice: bigint = tx.gasPrice || receipt.effectiveGasPrice;
             const cost: bigint = gasUsed * gasPrice;
 
-            expect(await registry.accounts(user1)).to.be.equal(ZeroAddress);
+            const [ account1, enabled1 ] = await registry.accounts(user1);
+            expect(account1).to.be.equal(account);
+            expect(enabled1).to.be.equal(false);
             expect(await account.owner()).to.be.equal(ZeroAddress);
             expect(await ethers.provider.getBalance(user1)).to.be.equal(ethBalance0 + ethers.parseEther("1") - cost);
             expect(await account.isEnabled()).to.be.equal(false);
@@ -133,12 +137,14 @@ describe("YcAccount", () => {
         });
 
         it("Should transfer ownership", async () => {
-            expect(await registry.accounts(user1)).to.be.equal(account);
+            const [ account0 ] = await registry.accounts(user1);
+            expect(account0).to.be.equal(account);
             expect(await account.owner()).to.be.equal(user1);
 
             await account.transferOwnership(user2);
 
-            expect(await registry.accounts(user2)).to.be.equal(account);
+            const [ account1 ] = await registry.accounts(user2);
+            expect(account1).to.be.equal(account);
             expect(await account.owner()).to.be.equal(user2);
         });
 

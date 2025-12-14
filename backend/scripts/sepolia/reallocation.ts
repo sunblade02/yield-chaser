@@ -13,6 +13,7 @@ async function main(): Promise<void> {
     let max = 500;
     while (true) {
         const accounts = await registry.getAccounts(i, max);
+        console.log(accounts);
 
         for (let j = 0; j < accounts.length; j++) {
             const accountAddress = accounts[j];

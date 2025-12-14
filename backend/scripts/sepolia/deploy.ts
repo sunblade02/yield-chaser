@@ -5,7 +5,7 @@ const { ethers } = await network.connect({
 });
 
 const usdcAdress = "0x361680F6052786187dFEe22355eD18113A8de3DC";
-const botAddress = undefined;
+const botAddress = "0xce044426aa089ec2167f94f54141019e3a0e7063";
 
 async function main(): Promise<void> {
     if (botAddress == undefined) {
