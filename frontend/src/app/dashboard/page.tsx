@@ -37,7 +37,7 @@ const DashboardPage = () => {
 
     let currentVaultIndex = null;
     if (account !== undefined && strategy !== undefined) {
-        for(let i = 0; strategy.vaults.length; i++) {
+        for(let i = 0; i < strategy.vaults.length; i++) {
             if (strategy.vaults[i].address === account.currentVault) {
                 currentVaultIndex = i;
                 break;

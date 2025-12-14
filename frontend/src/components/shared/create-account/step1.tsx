@@ -40,11 +40,11 @@ const Step1 = ({
                     <CardContent className="flex gap-4 px-0 text-muted-foreground text-xs">
                         <div>
                             Net APY<br />
-                            <span className="text-3xl font-weight-medium text-main">{strategy.bestVaultIndex ? readableNumber(strategy.vaults[strategy.bestVaultIndex].netAPY, 4) : 0}%</span>
+                            <span className="text-3xl font-weight-medium text-main">{typeof strategy.bestVaultIndex === "number" ? readableNumber(strategy.vaults[strategy.bestVaultIndex].netAPY, 4) : 0}%</span>
                         </div>
                         <div>
                             TVL<br />
-                            <span className="text-lg font-weight-medium text-foreground">${strategy.bestVaultIndex ? readableNumber(strategy.vaults[strategy.bestVaultIndex].tvl, 6) : 0}</span>
+                            <span className="text-lg font-weight-medium text-foreground">${typeof strategy.bestVaultIndex === "number" ? readableNumber(strategy.vaults[strategy.bestVaultIndex].tvl, 6) : 0}</span>
                         </div>
                     </CardContent>
                     <CardFooter className="border-t text-xs px-0 flex-col items-start space-y-2 text-muted-foreground">

@@ -86,7 +86,7 @@ describe("YcRegistry", () => {
                 await registry.connect(signers[i]).createAccount(strategy, ethers.parseUnits("1000", 6), 86400);
 
                 if (i % 3 === 0) {
-                    const accountAddress = await registry.accounts(signers[i]);
+                    const [ accountAddress ] = await registry.accounts(signers[i]);
                     const account = await ethers.getContractAt("YcAccount", accountAddress);
                     await account.connect(signers[i]).close();
                 }
@@ -317,13 +317,17 @@ describe("YcRegistry", () => {
         });
 
         it("Should create an account", async () => {
-            expect(await registry.accounts(user1)).to.be.equal(ZeroAddress);
+            const [ account0, enabled0 ] = await registry.accounts(user1);
+            expect(account0).to.be.equal(ZeroAddress);
+            expect(enabled0).to.be.equal(false);
 
             await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 //value: ethers.parseEther("0.001") // bug --coverage
             });
 
-            expect(await registry.accounts(user1)).not.to.be.equal(ZeroAddress);
+            const [ account1, enabled1 ] = await registry.accounts(user1);
+            expect(account1).not.to.be.equal(ZeroAddress);
+            expect(enabled1).to.be.equal(true);
         });
 
         /*it("Should transfer ETH to the new account", async () => { // bug --coverage
@@ -331,7 +335,7 @@ describe("YcRegistry", () => {
                 //value: ethers.parseEther("0.001")
             });
 
-            const account = await registry.accounts(user1);
+            const [ account ] = await registry.accounts(user1);
 
             expect(await ethers.provider.getBalance(account)).to.be.equal(ethers.parseEther("0.001"));
         });*/
@@ -343,8 +347,6 @@ describe("YcRegistry", () => {
             await registry.createAccount(strategy, ethers.parseUnits("1000", 6), 86400, {
                 //value: ethers.parseEther("0.001") // bug --coverage
             });
-
-            const account = await registry.accounts(user1);
 
             expect(await yct.balanceOf(registry)).to.be.equal(balanceYct - ethers.parseUnits("1", 18));
             expect(await yct.balanceOf(user1)).to.be.equal(ethers.parseUnits("1", 18));
@@ -358,7 +360,7 @@ describe("YcRegistry", () => {
                 //value: ethers.parseEther("0.001") // bug --coverage
             });
 
-            const account = await registry.accounts(user1);
+            const [ account ] = await registry.accounts(user1);
 
             const balance1 = await usdc.balanceOf(vault2);
 

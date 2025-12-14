@@ -70,7 +70,7 @@ const Step3 = ({
 
     let readableNetBenefit = "";
     let bestVaultName = "";
-    if (strategy.bestVaultIndex) {
+    if (typeof strategy.bestVaultIndex === "number") {
         bestVaultName = strategy.vaults[strategy.bestVaultIndex].name as string;
         const netBenefit = (usdcAmount / 10**6) * Number(strategy.vaults[strategy.bestVaultIndex].netAPY) / 10**4;
         readableNetBenefit = readableNumber(netBenefit, 2);
@@ -160,7 +160,7 @@ const Step3 = ({
                                             Net APY
                                         </div>
                                         <div>
-                                            <Badge variant="secondary" className="rounded-md text-xs text-main bg-main-foreground">{strategy.bestVaultIndex ? readableNumber(strategy.vaults[strategy.bestVaultIndex].netAPY, 4) : 0}%</Badge>
+                                            <Badge variant="secondary" className="rounded-md text-xs text-main bg-main-foreground">{typeof strategy.bestVaultIndex === "number" ? readableNumber(strategy.vaults[strategy.bestVaultIndex].netAPY, 4) : 0}%</Badge>
                                         </div>
                                     </div>
                                     <div className="flex justify-between">

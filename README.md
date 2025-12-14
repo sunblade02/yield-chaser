@@ -23,8 +23,8 @@ Below are the details of the deployment and the staging front-end.
 
 | Contract           | Address                                       | Etherscan Link                                                                                       |
 |--------------------|-----------------------------------------------|------------------------------------------------------------------------------------------------------|
-| `YcRegistry ✅`    | `0x936C20F30aE2D0bE4A4c72266D86B643e36d5882`  | [View on Etherscan](https://sepolia.etherscan.io/address/0x936C20F30aE2D0bE4A4c72266D86B643e36d5882) |
-| `YcToken`          | `0xc27Ef590f18d58F9BF8CE28adBE891dA68facdDF`  | [View on Etherscan](https://sepolia.etherscan.io/address/0xc27Ef590f18d58F9BF8CE28adBE891dA68facdDF) |
+| `YcRegistry ✅`    | `0xe110932564F63BC8B4803f2414FEe24BBA76887F`  | [View on Etherscan](https://sepolia.etherscan.io/address/0xe110932564F63BC8B4803f2414FEe24BBA76887F) |
+| `YcToken`          | `0x696f091108b91741df786075e70FA8A2b89eaE1d`  | [View on Etherscan](https://sepolia.etherscan.io/address/0x696f091108b91741df786075e70FA8A2b89eaE1d) |
 | `USDC (Mock)`      | `0x361680F6052786187dFEe22355eD18113A8de3DC`  | [View on Etherscan](https://sepolia.etherscan.io/address/0x361680F6052786187dFEe22355eD18113A8de3DC) |
 
 

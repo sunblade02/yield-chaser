@@ -54,7 +54,7 @@ async function main(): Promise<void> {
     await registry.createAccount(strategy, 1_000_000_000n, 86400n, { 
         value: ethers.parseEther("0.5")
     });
-    const account = await registry.accounts(signers[0]);
+    const [ account ] = await registry.accounts(signers[0]);
     console.log("Account for signer 0 was created : " + account);
 
     await registry.grantBotRole(signers[0]);

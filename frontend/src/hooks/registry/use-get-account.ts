@@ -1,7 +1,7 @@
 import { contractABI, contractAddress } from "@/constants/contracts/registry";
 import { useAccount, useReadContract } from "wagmi";
 
-export const useGetAccountAddress = () => {
+export const useGetAccount = () => {
     const { address: userAddress } = useAccount();
 
     return useReadContract({

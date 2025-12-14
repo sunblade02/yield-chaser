@@ -39,6 +39,13 @@ contract YcRegistry is AccessControl {
     event AccountClosed(address indexed owner, IYcAccount account);
     event RewardEmitted(address indexed owner, uint amount);
 
+    //----- STRUCT -----//
+
+    struct Account {
+        IYcAccount account;
+        bool enabled;
+    }
+
     //----- STATE VARIABLES -----//
 
     bytes32 public constant BOT_ROLE = keccak256("BOT_ROLE");
@@ -52,7 +59,7 @@ contract YcRegistry is AccessControl {
     ERC20 public usdc;
 
     /// @dev Stores the association between an user address and his account.
-    mapping(address => IYcAccount) public accounts;
+    mapping(address => Account) public accounts;
 
     address[] public users;
 
@@ -95,11 +102,18 @@ contract YcRegistry is AccessControl {
     /// Transfers 1 YCT to the account.
     function createAccount(IYcStrategy _strategy, uint _amount, uint32 _noReallocationPeriod) payable external returns (IYcAccount) {
         require(allowedStrategies[_strategy], NotAllowedStrategy());
-        require(address(accounts[msg.sender]) == address(0), AccountAlreadyExists());
+        require(accounts[msg.sender].enabled == false, AccountAlreadyExists());
         
         IYcAccount account = factory.createAccount(usdc, _strategy, msg.sender, _noReallocationPeriod);
-        users.push(msg.sender);
-        accounts[msg.sender] = account;
+        
+        bool firstAccount;
+        if (address(accounts[msg.sender].account) == address(0)) {
+            firstAccount = true;
+            users.push(msg.sender);
+        }
+
+        accounts[msg.sender].enabled = true;
+        accounts[msg.sender].account = account;
         _grantRole(ACCOUNT_ROLE, address(account));
 
         if (msg.value > 0) {
@@ -108,10 +122,12 @@ contract YcRegistry is AccessControl {
 
         if (_amount > 0) {
             usdc.transferFrom(msg.sender, address(account), _amount);
-            try account.allocate() {} catch {}
+            account.allocate();
         }
 
-        _reward(msg.sender);
+        if (firstAccount) {
+            _reward(msg.sender);
+        }
 
         emit AccountCreated(msg.sender, _strategy, _amount, msg.value);
 
@@ -195,11 +211,14 @@ contract YcRegistry is AccessControl {
     /// @notice Transfers an account.
     /// This function can only be called by an account.
     function transferAccount(address _from, address _to) external onlyRole(ACCOUNT_ROLE) {
-        require(address(accounts[_to]) == address(0), AccountAlreadyExists());
+        require(accounts[_to].enabled == false, AccountAlreadyExists());
 
-        delete accounts[_from];
-        users.push(_to);
-        accounts[_to] = IYcAccount(msg.sender);
+        accounts[_from].enabled = false;
+        if (address(accounts[_to].account) == address(0)) {
+            users.push(_to);
+        }
+        accounts[_to].account = IYcAccount(msg.sender);
+        accounts[_to].enabled = true;
 
         emit AccountTransfered(_from, _to);
     }
@@ -208,7 +227,7 @@ contract YcRegistry is AccessControl {
     /// This function can only be called by an account.
     function closeAccount(address _owner) external onlyRole(ACCOUNT_ROLE) {
         _revokeRole(ACCOUNT_ROLE, msg.sender);
-        delete accounts[_owner];
+        accounts[_owner].enabled = false;
 
         emit AccountClosed(_owner, IYcAccount(msg.sender));
     }
@@ -224,7 +243,7 @@ contract YcRegistry is AccessControl {
 
         uint count;
         for (uint i = _firstResult; i < max; i++) {
-            if (address(accounts[users[i]]) != address(0)) {
+            if (accounts[users[i]].enabled) {
                 count++;
             }
         }
@@ -233,9 +252,8 @@ contract YcRegistry is AccessControl {
         
         uint j;
         for (uint i = _firstResult; i < max; i++) {
-            IYcAccount account = accounts[users[i]];
-            if (address(account) != address(0)) {
-                validAccounts[j++] = account;
+            if (accounts[users[i]].enabled) {
+                validAccounts[j++] = accounts[users[i]].account;
             }
         }
 
